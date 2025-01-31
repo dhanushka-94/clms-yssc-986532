@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sponsors', function (Blueprint $table) {
-            $table->string('whatsapp_number')->nullable()->after('phone');
+            if (!Schema::hasColumn('sponsors', 'whatsapp_number')) {
+                $table->string('whatsapp_number')->nullable()->after('phone');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sponsors', function (Blueprint $table) {
-            $table->dropColumn('whatsapp_number');
+            if (Schema::hasColumn('sponsors', 'whatsapp_number')) {
+                $table->dropColumn('whatsapp_number');
+            }
         });
     }
 }; 

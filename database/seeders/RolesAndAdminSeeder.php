@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Role;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class RolesAndAdminSeeder extends Seeder
@@ -16,56 +16,27 @@ class RolesAndAdminSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $roles = [
-            [
-                'name' => 'admin',
-                'display_name' => 'Administrator',
-                'description' => 'Full system access'
-            ],
-            [
-                'name' => 'manager',
-                'display_name' => 'Manager',
-                'description' => 'Club management access'
-            ],
-            [
-                'name' => 'staff',
-                'display_name' => 'Staff',
-                'description' => 'Staff access'
-            ],
-            [
-                'name' => 'player',
-                'display_name' => 'Player',
-                'description' => 'Player access'
-            ],
-            [
-                'name' => 'member',
-                'display_name' => 'Member',
-                'description' => 'Member access'
-            ]
-        ];
-
-        foreach ($roles as $role) {
-            Role::create($role);
-        }
+        $adminRole = Role::create(['name' => 'admin']);
+        $managerRole = Role::create(['name' => 'manager']);
+        $staffRole = Role::create(['name' => 'staff']);
+        $memberRole = Role::create(['name' => 'member']);
 
         // Create admin user
         $admin = User::create([
-            'name' => 'Admin',
+            'name' => 'Admin User',
             'email' => 'admin@yssc.com',
             'password' => Hash::make('password'),
+            'role' => 'admin',
         ]);
-
-        // Assign admin role
-        $admin->roles()->attach(Role::where('name', 'admin')->first());
+        $admin->roles()->attach($adminRole);
 
         // Create manager user
         $manager = User::create([
-            'name' => 'Manager',
+            'name' => 'Manager User',
             'email' => 'manager@yssc.com',
             'password' => Hash::make('password'),
+            'role' => 'manager',
         ]);
-
-        // Assign manager role
-        $manager->roles()->attach(Role::where('name', 'manager')->first());
+        $manager->roles()->attach($managerRole);
     }
 }

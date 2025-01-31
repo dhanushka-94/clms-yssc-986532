@@ -91,7 +91,7 @@
                                                     {{ __('Events') }}
                                                 </x-side-nav-link>
 
-                                                <x-side-nav-link :href="route('events.attendances.index')" :active="request()->routeIs('attendances.*')">
+                                                <x-side-nav-link :href="route('events.attendances.index')" :active="str_contains(request()->route()->getName(), 'attendances')">
                                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                                                     </svg>
@@ -182,7 +182,7 @@
                                             {{ __('Events') }}
                                         </x-side-nav-link>
 
-                                        <x-side-nav-link :href="route('events.attendances.index')" :active="request()->routeIs('attendances.*')">
+                                        <x-side-nav-link :href="route('events.attendances.index')" :active="str_contains(request()->route()->getName(), 'attendances')">
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                                             </svg>
@@ -253,7 +253,7 @@
                                         <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Profile</a>
 
                                         <!-- Settings link -->
-                                        <a href="{{ route('settings.club') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Settings</a>
+                                        <a href="{{ route('settings.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">Settings</a>
 
                                         <!-- Logout Form -->
                                         <form method="POST" action="{{ route('logout') }}" class="block">

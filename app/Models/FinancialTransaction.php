@@ -21,18 +21,21 @@ class FinancialTransaction extends Model
     protected $fillable = [
         'transaction_number',
         'type',
+        'category',
         'amount',
         'description',
         'transaction_date',
-        'date',
-        'category',
         'payment_method',
-        'status',
         'reference_number',
-        'receipt_number',
+        'status',
+        'remarks',
         'bank_account_id',
         'transactionable_type',
         'transactionable_id',
+        'attachments',
+        'signature',
+        'signatory_name',
+        'signatory_designation',
     ];
 
     protected $casts = [

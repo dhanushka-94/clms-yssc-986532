@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sponsors', function (Blueprint $table) {
-            $table->enum('sponsorship_type', ['main', 'co', 'other'])->after('address');
+            if (!Schema::hasColumn('sponsors', 'sponsorship_type')) {
+                $table->enum('sponsorship_type', ['main', 'co', 'other'])->after('address');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sponsors', function (Blueprint $table) {
-            $table->dropColumn('sponsorship_type');
+            if (Schema::hasColumn('sponsors', 'sponsorship_type')) {
+                $table->dropColumn('sponsorship_type');
+            }
         });
     }
 };

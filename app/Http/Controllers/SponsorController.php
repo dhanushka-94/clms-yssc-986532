@@ -24,18 +24,19 @@ class SponsorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'contact_person' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:255',
-            'whatsapp_number' => 'nullable|string|max:255',
-            'address' => 'required|string|max:255',
-            'sponsorship_type' => 'required|string|max:255',
-            'sponsorship_amount' => 'required|numeric',
-            'sponsorship_start_date' => 'required|date',
-            'sponsorship_end_date' => 'required|date|after:sponsorship_start_date',
-            'status' => 'required|in:active,inactive',
+            'contact_person' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'sponsorship_type' => 'nullable|string|max:255',
+            'sponsorship_amount' => 'required|numeric|min:0',
+            'sponsorship_start_date' => 'nullable|date',
+            'sponsorship_end_date' => 'nullable|date|after_or_equal:sponsorship_start_date',
+            'status' => 'nullable|in:active,inactive',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'attachments.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:2048',
+            'attachments.*' => 'nullable|file|max:2048',
+            'notes' => 'nullable|string'
         ]);
 
         $sponsor = new Sponsor($validated);
@@ -45,13 +46,18 @@ class SponsorController extends Controller
             $sponsor->profile_picture = $path;
         }
 
+        // Set default status if not provided
+        if (!isset($validated['status'])) {
+            $sponsor->status = 'active';
+        }
+
         $sponsor->save();
 
         // Handle attachments after saving to get the sponsor ID
         if ($request->hasFile('attachments')) {
-            $attachmentPaths = $sponsor->storeAttachments($request->file('attachments'));
-            $sponsor->attachments = $attachmentPaths;
-            $sponsor->save();
+            foreach ($request->file('attachments') as $file) {
+                $sponsor->storeAttachment($file);
+            }
         }
 
         return redirect()->route('sponsors.index')
@@ -72,19 +78,20 @@ class SponsorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'contact_person' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:255',
             'whatsapp_number' => 'nullable|string|max:255',
-            'address' => 'required|string|max:255',
-            'sponsorship_type' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'sponsorship_type' => 'nullable|string|max:255',
             'sponsorship_amount' => 'required|numeric',
-            'sponsorship_start_date' => 'required|date',
-            'sponsorship_end_date' => 'required|date|after:sponsorship_start_date',
-            'status' => 'required|in:active,inactive',
+            'sponsorship_start_date' => 'nullable|date',
+            'sponsorship_end_date' => 'nullable|date|after_or_equal:sponsorship_start_date',
+            'status' => 'nullable|in:active,inactive',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'attachments.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:2048',
             'delete_attachments.*' => 'nullable|string',
+            'notes' => 'nullable|string'
         ]);
 
         if ($request->hasFile('profile_picture')) {
@@ -98,19 +105,21 @@ class SponsorController extends Controller
 
         // Handle attachment deletions
         if ($request->has('delete_attachments')) {
-            $currentAttachments = $sponsor->attachments ?? [];
             foreach ($request->delete_attachments as $path) {
                 $sponsor->deleteAttachment($path);
-                $currentAttachments = array_diff($currentAttachments, [$path]);
             }
-            $validated['attachments'] = array_values($currentAttachments);
         }
 
         // Handle new attachments
         if ($request->hasFile('attachments')) {
-            $newAttachments = $sponsor->storeAttachments($request->file('attachments'));
-            $currentAttachments = $sponsor->attachments ?? [];
-            $validated['attachments'] = array_merge($currentAttachments, $newAttachments);
+            foreach ($request->file('attachments') as $file) {
+                $sponsor->storeAttachment($file);
+            }
+        }
+
+        // Set default status if not provided
+        if (!isset($validated['status'])) {
+            $validated['status'] = $sponsor->status ?? 'active';
         }
 
         $sponsor->update($validated);

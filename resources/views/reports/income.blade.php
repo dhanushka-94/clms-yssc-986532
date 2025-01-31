@@ -53,6 +53,7 @@
                     'bank_account' => true,
                 ]"
                 :bankAccounts="$bankAccounts"
+                :categories="$categories"
             />
 
             <!-- Income Transactions Table -->

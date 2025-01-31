@@ -33,9 +33,10 @@
                     <!-- Players Table -->
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-yellow-50">
+                            <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profile</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jersey</th>
@@ -47,6 +48,19 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($players as $player)
                                 <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($player->profile_picture)
+                                            <img src="{{ asset('storage/' . $player->profile_picture) }}" 
+                                                alt="{{ $player->first_name }}'s Profile" 
+                                                class="h-10 w-10 rounded-full object-cover">
+                                        @else
+                                            <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                <span class="text-yellow-800 font-medium text-sm">
+                                                    {{ strtoupper(substr($player->first_name, 0, 1)) }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {{ $player->player_id }}
                                     </td>

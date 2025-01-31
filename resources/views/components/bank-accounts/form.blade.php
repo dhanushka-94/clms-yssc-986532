@@ -1,18 +1,6 @@
 @props(['bankAccount' => null])
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Profile Picture -->
-    <div class="col-span-2">
-        <x-input-label for="profile_picture" :value="__('Profile Picture')" />
-        <input id="profile_picture" name="profile_picture" type="file" accept="image/*" class="mt-1 block w-full" />
-        @if($bankAccount && $bankAccount->profile_picture)
-            <div class="mt-2">
-                <img src="{{ asset('storage/' . $bankAccount->profile_picture) }}" alt="Profile Picture" class="h-20 w-20 object-cover rounded-full">
-            </div>
-        @endif
-        <x-input-error class="mt-2" :messages="$errors->get('profile_picture')" />
-    </div>
-
     <!-- Bank Name -->
     <div>
         <x-input-label for="bank_name" :value="__('Bank Name *')" />

@@ -18,6 +18,9 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('registration_number')->nullable();
             $table->string('tax_number')->nullable();
+            $table->string('default_signature')->nullable();
+            $table->string('default_signatory_name')->nullable();
+            $table->string('default_signatory_designation')->nullable();
             $table->timestamps();
         });
     }

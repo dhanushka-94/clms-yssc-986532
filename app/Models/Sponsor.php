@@ -14,7 +14,7 @@ class Sponsor extends Model
 
     protected $fillable = [
         'sponsor_id',
-        'company_name',
+        'name',
         'contact_person',
         'email',
         'phone',
@@ -28,7 +28,7 @@ class Sponsor extends Model
         'contract_end_date',
         'status',
         'profile_picture',
-        'attachments',
+        'notes',
     ];
 
     protected $casts = [
@@ -37,8 +37,18 @@ class Sponsor extends Model
         'contract_start_date' => 'date',
         'contract_end_date' => 'date',
         'sponsorship_amount' => 'decimal:2',
-        'attachments' => 'array',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($sponsor) {
+            if (!$sponsor->sponsor_id) {
+                $sponsor->sponsor_id = 'SP' . str_pad(static::max('id') + 1, 5, '0', STR_PAD_LEFT);
+            }
+        });
+    }
 
     public function financialTransactions(): MorphMany
     {

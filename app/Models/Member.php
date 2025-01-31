@@ -14,6 +14,7 @@ class Member extends Model
     use HasAttachments;
 
     protected $fillable = [
+        'membership_number',
         'first_name',
         'last_name',
         'nic',
@@ -22,6 +23,8 @@ class Member extends Model
         'address',
         'date_of_birth',
         'joined_date',
+        'membership_type',
+        'designation',
         'membership_fee',
         'status',
         'profile_picture',
@@ -34,6 +37,31 @@ class Member extends Model
         'membership_fee' => 'decimal:2',
         'attachments' => 'array',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($member) {
+            // Generate membership number
+            if (!$member->membership_number) {
+                $latestMember = static::orderBy('id', 'desc')->first();
+                
+                if (!$latestMember) {
+                    $member->membership_number = 'M-0001';
+                } else {
+                    $lastNumber = intval(substr($latestMember->membership_number, 2));
+                    $member->membership_number = 'M-' . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+                }
+            }
+
+            // Set default values for nullable fields
+            $member->status = $member->status ?? 'active';
+            $member->membership_type = $member->membership_type ?? 'regular';
+            $member->membership_fee = $member->membership_fee ?? 0;
+            $member->joined_date = $member->joined_date ?? now();
+        });
+    }
 
     public function user(): BelongsTo
     {

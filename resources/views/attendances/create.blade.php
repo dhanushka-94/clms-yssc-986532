@@ -18,7 +18,7 @@
                 <form method="POST" action="{{ route('events.attendances.store', $event) }}" class="p-6">
                     @csrf
 
-                    <x-attendances.form :event="$event" :players="$players" :existingAttendances="$existingAttendances" />
+                    <x-attendances.form :event="$event" :attendees="$attendees" :existingAttendances="$existingAttendances" :type="$type" />
 
                     <div class="flex items-center justify-end mt-6 gap-x-6">
                         <a href="{{ route('events.show', $event) }}" class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>

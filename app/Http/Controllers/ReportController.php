@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Exports\TransactionsExport;
+use App\Models\Category;
 
 class ReportController extends Controller
 {
@@ -67,14 +68,38 @@ class ReportController extends Controller
             $query->where('bank_account_id', $request->bank_account_id);
         }
 
+        // Get summary data
+        $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
+        $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
+        $pendingTransactions = (clone $query)->where('status', 'pending')->count();
+
         $transactions = $query->latest('transaction_date')->paginate(15);
         $bankAccounts = BankAccount::all();
+        $categories = Category::active()
+            ->when($request->type, function($query) use ($request) {
+                return $query->ofType($request->type);
+            })
+            ->orderBy('name')
+            ->get();
         
-        return view('reports.transactions', compact('transactions', 'bankAccounts'));
+        return view('reports.transactions', compact(
+            'transactions',
+            'bankAccounts',
+            'categories',
+            'totalIncome',
+            'totalExpenses',
+            'pendingTransactions'
+        ));
     }
 
     public function income(Request $request): View
     {
+        // Get income categories first
+        $categories = Category::where('type', 'income')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
         $query = FinancialTransaction::with(['bankAccount', 'transactionable'])
             ->where('type', 'income');
         
@@ -132,7 +157,8 @@ class ReportController extends Controller
             'yearlyIncome',
             'monthlyData',
             'categoryData',
-            'bankAccounts'
+            'bankAccounts',
+            'categories'
         ));
     }
 
@@ -187,23 +213,6 @@ class ReportController extends Controller
         ));
     }
 
-    public function categories(Request $request): View
-    {
-        $dateFrom = $request->get('date_from', Carbon::now()->startOfMonth());
-        $dateTo = $request->get('date_to', Carbon::now());
-
-        // Get category-wise summary
-        $categorySummary = FinancialTransaction::whereBetween('transaction_date', [$dateFrom, $dateTo])
-            ->select('category', 'type', DB::raw('SUM(amount) as total_amount'), DB::raw('COUNT(*) as transaction_count'))
-            ->groupBy('category', 'type')
-            ->get();
-
-        // Get bank accounts for filter
-        $bankAccounts = BankAccount::all();
-
-        return view('reports.categories', compact('categorySummary', 'bankAccounts'));
-    }
-
     public function entities(Request $request): View
     {
         $dateFrom = $request->get('date_from', Carbon::now()->startOfMonth());
@@ -231,19 +240,93 @@ class ReportController extends Controller
         return view('reports.bank-accounts', compact('bankAccounts'));
     }
 
+    public function categorySummary(Request $request): View
+    {
+        $dateFrom = $request->get('date_from', Carbon::now()->startOfMonth());
+        $dateTo = $request->get('date_to', Carbon::now());
+
+        // Get income categories summary
+        $incomeCategories = FinancialTransaction::where('type', 'income')
+            ->whereBetween('transaction_date', [$dateFrom, $dateTo])
+            ->select(
+                'category',
+                DB::raw('COUNT(*) as transaction_count'),
+                DB::raw('SUM(amount) as total_amount'),
+                DB::raw('AVG(amount) as average_amount')
+            )
+            ->groupBy('category')
+            ->orderByDesc('total_amount')
+            ->get();
+
+        // Get expense categories summary
+        $expenseCategories = FinancialTransaction::where('type', 'expense')
+            ->whereBetween('transaction_date', [$dateFrom, $dateTo])
+            ->select(
+                'category',
+                DB::raw('COUNT(*) as transaction_count'),
+                DB::raw('SUM(amount) as total_amount'),
+                DB::raw('AVG(amount) as average_amount')
+            )
+            ->groupBy('category')
+            ->orderByDesc('total_amount')
+            ->get();
+
+        // Calculate totals
+        $totalIncome = $incomeCategories->sum('total_amount');
+        $totalExpenses = $expenseCategories->sum('total_amount');
+
+        return view('reports.category-summary', compact(
+            'incomeCategories',
+            'expenseCategories',
+            'totalIncome',
+            'totalExpenses',
+            'dateFrom',
+            'dateTo'
+        ));
+    }
+
     public function exportPdf(Request $request)
     {
-        $filters = json_decode($request->filters, true);
-        $query = $this->getFilteredQuery($filters);
-        $transactions = $query->get();
+        $query = FinancialTransaction::with(['bankAccount', 'transactionable']);
+        
+        // Apply filters
+        if ($request->filled('date_from')) {
+            $query->where('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('transaction_date', '<=', $request->date_to);
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->payment_method);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('bank_account_id')) {
+            $query->where('bank_account_id', $request->bank_account_id);
+        }
 
-        $pdf = PDF::loadView('reports.exports.pdf', [
-            'transactions' => $transactions,
-            'filters' => $filters,
-            'generatedAt' => now(),
-        ]);
+        $transactions = $query->latest('transaction_date')->get();
+        
+        // Get summary data
+        $totalIncome = $transactions->where('type', 'income')->sum('amount');
+        $totalExpenses = $transactions->where('type', 'expense')->sum('amount');
+        $pendingTransactions = $transactions->where('status', 'pending')->count();
 
-        return $pdf->download('financial-report-' . now()->format('Y-m-d') . '.pdf');
+        $pdf = PDF::loadView('reports.pdf.transactions', compact(
+            'transactions',
+            'totalIncome',
+            'totalExpenses',
+            'pendingTransactions'
+        ));
+
+        return $pdf->download('transactions-report.pdf');
     }
 
     public function exportExcel(Request $request)

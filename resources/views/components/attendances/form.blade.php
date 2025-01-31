@@ -59,9 +59,15 @@
                     <tr>
                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                             <input type="hidden" name="attendances[{{ $loop->index }}][attendee_id]" value="{{ $attendee->id }}">
-                            {{ $attendee->name }}
+                            {{ $attendee->first_name }} {{ $attendee->last_name }}
                             @if(isset($attendee->jersey_number))
                                 <span class="ml-1 text-gray-500">#{{ $attendee->jersey_number }}</span>
+                            @endif
+                            @if(isset($attendee->role))
+                                <span class="ml-1 text-gray-500">({{ $attendee->role }})</span>
+                            @endif
+                            @if(isset($attendee->membership_type))
+                                <span class="ml-1 text-gray-500">({{ $attendee->membership_type }})</span>
                             @endif
                         </td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">

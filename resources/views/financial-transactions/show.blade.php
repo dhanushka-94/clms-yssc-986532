@@ -75,7 +75,7 @@
 
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Category</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $transaction->category->name }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ ucfirst(str_replace('_', ' ', $transaction->category)) }}</dd>
                                 </div>
 
                                 <div>
@@ -120,10 +120,12 @@
                                     <dd class="mt-1 text-sm text-gray-900">{{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }}</dd>
                                 </div>
 
+                                @if($transaction->reference_number)
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Reference Number</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $transaction->reference_number ?? 'N/A' }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $transaction->reference_number }}</dd>
                                 </div>
+                                @endif
                             </dl>
                         </div>
 
@@ -135,25 +137,34 @@
                                     <dt class="text-sm font-medium text-gray-500">Description</dt>
                                     <dd class="mt-1 text-sm text-gray-900">{{ $transaction->description }}</dd>
                                 </div>
-
-                                @if($transaction->attachments)
-                                <div>
-                                    <dt class="text-sm font-medium text-gray-500">Attachments</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">
-                                        <ul class="list-disc list-inside">
-                                            @foreach($transaction->attachments as $attachment)
-                                                <li>
-                                                    <a href="{{ Storage::url($attachment) }}" target="_blank" class="text-blue-600 hover:text-blue-800">
-                                                        {{ basename($attachment) }}
-                                                    </a>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </dd>
-                                </div>
-                                @endif
                             </dl>
                         </div>
+
+                        @if($transaction->attachments && count($transaction->attachments) > 0)
+                            <div class="bg-purple-50 p-6 rounded-lg">
+                                <h3 class="text-lg font-semibold text-purple-800 mb-4">Attachments</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    @foreach($transaction->attachments as $attachment)
+                                        <div class="border border-purple-200 rounded-lg p-4 bg-white">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex-1 truncate">
+                                                    <p class="text-sm font-medium text-gray-900 truncate">
+                                                        {{ basename($attachment) }}
+                                                    </p>
+                                                </div>
+                                                <div class="ml-4 flex-shrink-0">
+                                                    <a href="{{ Storage::disk('public')->url($attachment) }}" 
+                                                       target="_blank"
+                                                       class="font-medium text-purple-600 hover:text-purple-500">
+                                                        View
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

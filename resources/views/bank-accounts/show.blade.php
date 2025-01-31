@@ -77,13 +77,14 @@
                             <h3 class="text-lg font-semibold text-gray-900">Recent Transactions</h3>
                             <a href="{{ route('financial-transactions.create', ['bank_account_id' => $bankAccount->id]) }}" class="text-yellow-600 hover:text-yellow-900">Add Transaction →</a>
                         </div>
-                        @if($bankAccount->financialTransactions->count() > 0)
+                        @if($bankAccount->financialTransactions->isNotEmpty())
                             <div class="space-y-4">
                                 @foreach($bankAccount->financialTransactions as $transaction)
-                                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                         <div>
-                                            <p class="text-sm font-medium text-gray-900">{{ $transaction->description }}</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ $transaction->description ?: 'N/A' }}</p>
                                             <p class="text-xs text-gray-500">{{ $transaction->transaction_date->format('Y-m-d') }}</p>
+                                            <p class="text-xs text-gray-500">{{ $transaction->category }}</p>
                                         </div>
                                         <div class="text-right">
                                             <p class="text-sm font-medium @if($transaction->type === 'income') text-green-600 @else text-red-600 @endif">
@@ -98,6 +99,9 @@
                                         </div>
                                     </div>
                                 @endforeach
+                                <div class="mt-4 text-right">
+                                    <a href="{{ route('financial-transactions.index', ['bank_account_id' => $bankAccount->id]) }}" class="text-sm text-yellow-600 hover:text-yellow-900">View All Transactions →</a>
+                                </div>
                             </div>
                         @else
                             <p class="text-sm text-gray-500">No transactions found.</p>

@@ -23,7 +23,29 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">User Information</h3>
+                    <div class="flex items-start space-x-6 mb-6">
+                        <!-- Profile Picture -->
+                        <div class="flex-shrink-0">
+                            @if($user->profile_picture)
+                                <img src="{{ asset('storage/' . $user->profile_picture) }}" 
+                                    alt="{{ $user->name }}'s Profile Picture" 
+                                    class="h-32 w-32 rounded-full object-cover border-4 border-yellow-200">
+                            @else
+                                <div class="h-32 w-32 rounded-full bg-yellow-100 flex items-center justify-center border-4 border-yellow-200">
+                                    <span class="text-yellow-800 font-bold text-3xl">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- User Information Header -->
+                        <div class="flex-grow">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-1">User Information</h3>
+                            <p class="text-sm text-gray-500">Account details and roles</p>
+                        </div>
+                    </div>
+
                     <dl class="grid grid-cols-1 gap-4">
                         <div>
                             <dt class="text-sm font-medium text-yellow-600">Name</dt>

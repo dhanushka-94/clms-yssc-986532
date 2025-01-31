@@ -13,7 +13,10 @@ class Staff extends Model
     use HasFactory;
     use HasAttachments;
 
+    protected $table = 'staff';
+
     protected $fillable = [
+        'employee_id',
         'first_name',
         'last_name',
         'nic',
@@ -39,6 +42,33 @@ class Staff extends Model
         'salary' => 'decimal:2',
         'attachments' => 'array',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($staff) {
+            // Generate employee ID
+            if (!$staff->employee_id) {
+                $latestStaff = static::latest()->first();
+                
+                if (!$latestStaff) {
+                    $staff->employee_id = 'EMP0001';
+                } else {
+                    $lastNumber = intval(substr($latestStaff->employee_id, 3));
+                    $staff->employee_id = 'EMP' . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+                }
+            }
+
+            // Set default values for nullable fields
+            $staff->status = $staff->status ?? 'active';
+            $staff->role = $staff->role ?? 'staff';
+            $staff->salary = $staff->salary ?? 0;
+            $staff->joined_date = $staff->joined_date ?? now();
+            $staff->contract_start_date = $staff->contract_start_date ?? now();
+            $staff->contract_end_date = $staff->contract_end_date ?? now()->addYear();
+        });
+    }
 
     public function user(): BelongsTo
     {

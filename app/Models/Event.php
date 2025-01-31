@@ -70,14 +70,41 @@ class Event extends Model
 
     public function getAttendanceStatsByType(string $type)
     {
-        $attendees = $this->getAttendeesByType($type);
+        $attendeeClass = match ($type) {
+            'players' => Player::class,
+            'staff' => Staff::class,
+            'members' => Member::class,
+            default => null,
+        };
+
+        if (!$attendeeClass) {
+            return [
+                'total' => 0,
+                'present' => 0,
+                'absent' => 0,
+                'late' => 0,
+                'excused' => 0,
+            ];
+        }
+
+        $stats = $this->attendances()
+            ->where('attendee_type', $attendeeClass)
+            ->selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN status = "present" THEN 1 ELSE 0 END) as present,
+                SUM(CASE WHEN status = "absent" THEN 1 ELSE 0 END) as absent,
+                SUM(CASE WHEN status = "late" THEN 1 ELSE 0 END) as late,
+                SUM(CASE WHEN status = "excused" THEN 1 ELSE 0 END) as excused
+            ')
+            ->first()
+            ->toArray();
         
         return [
-            'total' => $attendees->count(),
-            'present' => $attendees->wherePivot('status', 'present')->count(),
-            'absent' => $attendees->wherePivot('status', 'absent')->count(),
-            'late' => $attendees->wherePivot('status', 'late')->count(),
-            'excused' => $attendees->wherePivot('status', 'excused')->count(),
+            'total' => (int) $stats['total'],
+            'present' => (int) $stats['present'],
+            'absent' => (int) $stats['absent'],
+            'late' => (int) $stats['late'],
+            'excused' => (int) $stats['excused'],
         ];
     }
 }

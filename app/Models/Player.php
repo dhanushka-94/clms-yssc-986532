@@ -16,6 +16,7 @@ class Player extends Model
     use HasAttachments;
 
     protected $fillable = [
+        'player_id',
         'first_name',
         'last_name',
         'nic',
@@ -35,6 +36,31 @@ class Player extends Model
         'profile_picture',
         'attachments',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($player) {
+            if (!$player->player_id) {
+                $latestPlayer = static::latest()->first();
+                
+                if (!$latestPlayer) {
+                    $player->player_id = 'PLY0001';
+                } else {
+                    $lastNumber = intval(substr($latestPlayer->player_id, 3));
+                    $player->player_id = 'PLY' . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+                }
+            }
+
+            $player->status = $player->status ?? 'active';
+            $player->position = $player->position ?? 'unassigned';
+            $player->contract_amount = $player->contract_amount ?? 0;
+            $player->joined_date = $player->joined_date ?? now();
+            $player->contract_start_date = $player->contract_start_date ?? now();
+            $player->contract_end_date = $player->contract_end_date ?? now()->addYear();
+        });
+    }
 
     protected $casts = [
         'date_of_birth' => 'date',
@@ -65,5 +91,10 @@ class Player extends Model
         return $this->morphToMany(Event::class, 'attendee', 'attendances')
             ->withPivot('status', 'check_in_time', 'check_out_time', 'remarks')
             ->withTimestamps();
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class MemberController extends Controller
@@ -25,36 +26,82 @@ class MemberController extends Controller
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'nic' => 'required|string|max:255|unique:members',
-            'phone' => 'required|string|max:255',
-            'whatsapp_number' => 'nullable|string|max:255',
-            'address' => 'required|string|max:255',
-            'date_of_birth' => 'required|date',
-            'joined_date' => 'required|date',
-            'membership_fee' => 'required|numeric',
-            'status' => 'required|in:active,inactive',
+            'nic' => 'nullable|string|max:12',
+            'phone' => 'nullable|string|max:20',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'date_of_birth' => 'nullable|date',
+            'joined_date' => 'nullable|date',
+            'membership_type' => 'nullable|string|in:regular,lifetime,honorary,student',
+            'designation' => 'nullable|string|max:255',
+            'membership_fee' => 'nullable|numeric|min:0',
+            'status' => 'nullable|string|in:active,inactive,suspended',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'attachments.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:2048',
+            'attachments.*' => 'nullable|file|max:2048'
         ]);
 
-        $member = new Member($validated);
+        try {
+            DB::beginTransaction();
 
-        if ($request->hasFile('profile_picture')) {
-            $path = $request->file('profile_picture')->store('profile-pictures/members', 'public');
-            $member->profile_picture = $path;
+            // Create member without files first
+            $member = Member::create($validated);
+
+            // Handle profile picture upload
+            if ($request->hasFile('profile_picture')) {
+                try {
+                    $path = $request->file('profile_picture')->store('profile-pictures/members', 'public');
+                    if ($path) {
+                        $member->profile_picture = $path;
+                        $member->save();
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to upload profile picture: ' . $e->getMessage());
+                    // Continue without profile picture
+                }
+            }
+
+            // Handle attachments
+            if ($request->hasFile('attachments')) {
+                try {
+                    $attachmentPaths = [];
+                    foreach ($request->file('attachments') as $file) {
+                        $path = $file->store('attachments/members/' . $member->id, 'public');
+                        if ($path) {
+                            $attachmentPaths[] = $path;
+                        }
+                    }
+                    if (!empty($attachmentPaths)) {
+                        $member->attachments = $attachmentPaths;
+                        $member->save();
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to upload attachments: ' . $e->getMessage());
+                    // Continue without attachments
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('members.index')
+                ->with('success', 'Member created successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Member creation failed: ' . $e->getMessage());
+            
+            // Clean up any uploaded files
+            if (isset($path)) {
+                Storage::disk('public')->delete($path);
+            }
+            if (isset($attachmentPaths)) {
+                foreach ($attachmentPaths as $path) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to create member. ' . $e->getMessage());
         }
-
-        $member->save();
-
-        // Handle attachments after saving to get the member ID
-        if ($request->hasFile('attachments')) {
-            $attachmentPaths = $member->storeAttachments($request->file('attachments'));
-            $member->attachments = $attachmentPaths;
-            $member->save();
-        }
-
-        return redirect()->route('members.index')
-            ->with('success', 'Member created successfully.');
     }
 
     public function show(Member $member): View
@@ -72,64 +119,94 @@ class MemberController extends Controller
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'nic' => 'required|string|max:255|unique:members,nic,' . $member->id,
-            'phone' => 'required|string|max:255',
-            'whatsapp_number' => 'nullable|string|max:255',
-            'address' => 'required|string|max:255',
-            'date_of_birth' => 'required|date',
-            'joined_date' => 'required|date',
-            'membership_fee' => 'required|numeric',
-            'status' => 'required|in:active,inactive',
+            'nic' => 'nullable|string|max:12',
+            'phone' => 'nullable|string|max:20',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'date_of_birth' => 'nullable|date',
+            'joined_date' => 'nullable|date',
+            'membership_type' => 'nullable|string|in:regular,lifetime,honorary,student',
+            'designation' => 'nullable|string|max:255',
+            'membership_fee' => 'nullable|numeric|min:0',
+            'status' => 'nullable|string|in:active,inactive,suspended',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'attachments.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:2048',
+            'attachments.*' => 'nullable|file|max:2048',
             'delete_attachments.*' => 'nullable|string',
         ]);
 
-        if ($request->hasFile('profile_picture')) {
-            // Delete old profile picture
-            if ($member->profile_picture) {
-                Storage::disk('public')->delete($member->profile_picture);
+        try {
+            DB::beginTransaction();
+
+            if ($request->hasFile('profile_picture')) {
+                // Delete old profile picture
+                if ($member->profile_picture) {
+                    Storage::disk('public')->delete($member->profile_picture);
+                }
+                $path = $request->file('profile_picture')->store('profile-pictures/members', 'public');
+                if (!$path) {
+                    throw new \Exception('Failed to upload profile picture');
+                }
+                $validated['profile_picture'] = $path;
             }
-            $path = $request->file('profile_picture')->store('profile-pictures/members', 'public');
-            $validated['profile_picture'] = $path;
-        }
 
-        // Handle attachment deletions
-        if ($request->has('delete_attachments')) {
-            $currentAttachments = $member->attachments ?? [];
-            foreach ($request->delete_attachments as $path) {
-                $member->deleteAttachment($path);
-                $currentAttachments = array_diff($currentAttachments, [$path]);
+            // Handle attachment deletions
+            if ($request->has('delete_attachments')) {
+                $currentAttachments = $member->attachments ?? [];
+                foreach ($request->delete_attachments as $path) {
+                    if ($member->deleteAttachment($path)) {
+                        $currentAttachments = array_diff($currentAttachments, [$path]);
+                    }
+                }
+                $validated['attachments'] = array_values($currentAttachments);
             }
-            $validated['attachments'] = array_values($currentAttachments);
+
+            // Handle new attachments
+            if ($request->hasFile('attachments')) {
+                $newAttachments = $member->storeAttachments($request->file('attachments'));
+                if (!empty($newAttachments)) {
+                    $currentAttachments = $member->attachments ?? [];
+                    $validated['attachments'] = array_merge($currentAttachments, $newAttachments);
+                }
+            }
+
+            $member->update($validated);
+
+            DB::commit();
+
+            return redirect()->route('members.index')
+                ->with('success', 'Member updated successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Member update failed: ' . $e->getMessage());
+            return back()->withInput()
+                ->with('error', 'Failed to update member. Please try again.');
         }
-
-        // Handle new attachments
-        if ($request->hasFile('attachments')) {
-            $newAttachments = $member->storeAttachments($request->file('attachments'));
-            $currentAttachments = $member->attachments ?? [];
-            $validated['attachments'] = array_merge($currentAttachments, $newAttachments);
-        }
-
-        $member->update($validated);
-
-        return redirect()->route('members.index')
-            ->with('success', 'Member updated successfully.');
     }
 
     public function destroy(Member $member)
     {
-        // Delete profile picture
-        if ($member->profile_picture) {
-            Storage::disk('public')->delete($member->profile_picture);
+        try {
+            DB::beginTransaction();
+
+            // Delete profile picture
+            if ($member->profile_picture) {
+                Storage::disk('public')->delete($member->profile_picture);
+            }
+
+            // Delete all attachments
+            $member->deleteAllAttachments();
+
+            $member->delete();
+
+            DB::commit();
+
+            return redirect()->route('members.index')
+                ->with('success', 'Member deleted successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Member deletion failed: ' . $e->getMessage());
+            return back()
+                ->with('error', 'Failed to delete member. Please try again.');
         }
-
-        // Delete all attachments
-        $member->deleteAllAttachments();
-
-        $member->delete();
-
-        return redirect()->route('members.index')
-            ->with('success', 'Member deleted successfully.');
     }
 }

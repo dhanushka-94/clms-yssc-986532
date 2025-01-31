@@ -28,6 +28,22 @@
                         <!-- Personal Information -->
                         <div class="bg-yellow-50 p-6 rounded-lg">
                             <h3 class="text-lg font-semibold text-yellow-800 mb-4">Personal Information</h3>
+                            
+                            <!-- Profile Picture -->
+                            <div class="mb-6 flex justify-center">
+                                @if($member->profile_picture)
+                                    <img src="{{ asset('storage/' . $member->profile_picture) }}" 
+                                        alt="{{ $member->first_name }}'s Profile Picture" 
+                                        class="h-32 w-32 rounded-full object-cover border-4 border-yellow-200">
+                                @else
+                                    <div class="h-32 w-32 rounded-full bg-yellow-100 flex items-center justify-center border-4 border-yellow-200">
+                                        <span class="text-yellow-800 font-bold text-3xl">
+                                            {{ strtoupper(substr($member->first_name, 0, 1)) }}
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
+
                             <dl class="grid grid-cols-1 gap-4">
                                 <div>
                                     <dt class="text-sm font-medium text-yellow-600">Membership Number</dt>
@@ -43,7 +59,7 @@
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-yellow-600">Date of Birth</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $member->date_of_birth->format('Y-m-d') }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $member->date_of_birth ? $member->date_of_birth->format('Y-m-d') : 'Not specified' }}</dd>
                                 </div>
                             </dl>
                         </div>
@@ -73,7 +89,7 @@
                             <dl class="grid grid-cols-1 gap-4">
                                 <div>
                                     <dt class="text-sm font-medium text-yellow-600">Joined Date</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $member->joined_date->format('Y-m-d') }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $member->joined_date ? $member->joined_date->format('Y-m-d') : 'Not specified' }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-yellow-600">Status</dt>
@@ -112,6 +128,35 @@
                                 </div>
                             @else
                                 <p class="text-sm text-gray-500">No transactions found.</p>
+                            @endif
+                        </div>
+
+                        <!-- Attachments -->
+                        <div class="col-span-2 bg-yellow-50 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-yellow-800 mb-4">Attachments</h3>
+                            @if($member->attachments && count($member->attachments) > 0)
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    @foreach($member->attachments as $attachment)
+                                        <div class="border border-yellow-200 rounded-lg p-4 bg-white">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex-1 truncate">
+                                                    <p class="text-sm font-medium text-gray-900 truncate">
+                                                        {{ basename($attachment) }}
+                                                    </p>
+                                                </div>
+                                                <div class="ml-4 flex-shrink-0">
+                                                    <a href="{{ asset('storage/' . $attachment) }}" 
+                                                       target="_blank"
+                                                       class="font-medium text-yellow-600 hover:text-yellow-500">
+                                                        View
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-sm text-gray-500">No attachments found.</p>
                             @endif
                         </div>
                     </div>

@@ -14,7 +14,7 @@ use App\Traits\HasAttachments;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasApiTokens, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
     use HasAttachments;
 
     /**
@@ -28,6 +28,7 @@ class User extends Authenticatable
         'profile_picture',
         'password',
         'attachments',
+        'role',
     ];
 
     /**
@@ -45,14 +46,11 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'attachments' => 'array',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'attachments' => 'array',
+    ];
 
     public function roles(): BelongsToMany
     {
@@ -74,8 +72,13 @@ class User extends Authenticatable
         return $this->hasOne(Player::class);
     }
 
-    public function hasRole(string $role): bool
+    public function hasRole($role)
     {
-        return $this->roles()->where('name', $role)->exists();
+        return $this->role === $role;
+    }
+
+    public function assignRole($role)
+    {
+        $this->update(['role' => $role]);
     }
 }

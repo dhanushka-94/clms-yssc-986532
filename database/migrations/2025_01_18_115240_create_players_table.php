@@ -13,22 +13,26 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('player_id')->unique();
             $table->string('first_name');
             $table->string('last_name');
-            $table->string('nic')->unique();
-            $table->string('phone');
-            $table->string('address');
-            $table->date('date_of_birth');
-            $table->date('joined_date');
-            $table->string('position');
-            $table->string('jersey_number')->unique();
-            $table->decimal('contract_amount', 10, 2);
-            $table->date('contract_start_date');
-            $table->date('contract_end_date');
-            $table->enum('status', ['active', 'injured', 'suspended', 'inactive']);
+            $table->string('nic')->nullable()->unique();
+            $table->string('ffsl_number')->nullable()->unique();
+            $table->string('phone')->nullable();
+            $table->string('whatsapp_number')->nullable();
+            $table->string('address')->nullable();
+            $table->date('date_of_birth')->nullable();
+            $table->date('joined_date')->nullable();
+            $table->string('position')->nullable();
+            $table->string('jersey_number')->nullable()->unique();
+            $table->decimal('contract_amount', 10, 2)->nullable();
+            $table->date('contract_start_date')->nullable();
+            $table->date('contract_end_date')->nullable();
+            $table->string('status')->nullable();
             $table->text('achievements')->nullable();
+            $table->string('profile_picture')->nullable();
+            $table->json('attachments')->nullable();
             $table->timestamps();
         });
     }

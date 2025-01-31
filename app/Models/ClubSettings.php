@@ -18,5 +18,8 @@ class ClubSettings extends Model
         'description',
         'registration_number',
         'tax_number',
+        'default_signature',
+        'default_signatory_name',
+        'default_signatory_designation',
     ];
 }

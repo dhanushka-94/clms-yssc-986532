@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 trait HasAttachments
 {
@@ -12,12 +13,25 @@ trait HasAttachments
      *
      * @param UploadedFile $file
      * @param string $type Type of attachment (e.g., 'documents', 'images')
-     * @return string The path where the file was stored
+     * @return string|null The path where the file was stored, or null if failed
      */
-    public function storeAttachment(UploadedFile $file, string $type = 'documents'): string
+    public function storeAttachment(UploadedFile $file, string $type = 'documents'): ?string
     {
-        $path = $file->store("attachments/{$this->getTable()}/{$this->id}/{$type}", 'public');
-        return $path;
+        try {
+            // Generate a unique filename
+            $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
+            
+            // Create the storage path
+            $path = "attachments/{$this->getTable()}/{$this->id}/{$type}";
+            
+            // Store the file
+            $filePath = $file->storeAs($path, $filename, 'public');
+            
+            return $filePath;
+        } catch (\Exception $e) {
+            \Log::error('File upload failed: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -32,7 +46,10 @@ trait HasAttachments
         $paths = [];
         foreach ($files as $file) {
             if ($file instanceof UploadedFile) {
-                $paths[] = $this->storeAttachment($file, $type);
+                $path = $this->storeAttachment($file, $type);
+                if ($path) {
+                    $paths[] = $path;
+                }
             }
         }
         return $paths;
@@ -46,7 +63,15 @@ trait HasAttachments
      */
     public function deleteAttachment(string $path): bool
     {
-        return Storage::disk('public')->delete($path);
+        try {
+            if (Storage::disk('public')->exists($path)) {
+                return Storage::disk('public')->delete($path);
+            }
+            return false;
+        } catch (\Exception $e) {
+            \Log::error('File deletion failed: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -69,7 +94,16 @@ trait HasAttachments
      */
     public function deleteAllAttachments(): bool
     {
-        return Storage::disk('public')->deleteDirectory("attachments/{$this->getTable()}/{$this->id}");
+        try {
+            $path = "attachments/{$this->getTable()}/{$this->id}";
+            if (Storage::disk('public')->exists($path)) {
+                return Storage::disk('public')->deleteDirectory($path);
+            }
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete all attachments: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -80,11 +114,19 @@ trait HasAttachments
      */
     public function getAttachments(string $type = null): array
     {
-        $path = "attachments/{$this->getTable()}/{$this->id}";
-        if ($type) {
-            $path .= "/{$type}";
+        try {
+            $path = "attachments/{$this->getTable()}/{$this->id}";
+            if ($type) {
+                $path .= "/{$type}";
+            }
+            
+            if (Storage::disk('public')->exists($path)) {
+                return Storage::disk('public')->files($path);
+            }
+            return [];
+        } catch (\Exception $e) {
+            \Log::error('Failed to get attachments: ' . $e->getMessage());
+            return [];
         }
-        
-        return Storage::disk('public')->files($path);
     }
 } 

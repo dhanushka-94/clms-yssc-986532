@@ -14,6 +14,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SignatureController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -63,15 +64,43 @@ Route::middleware('auth')->group(function () {
         ->name('financial-transactions.download-invoice');
     Route::resource('interbank-transfers', InterBankTransferController::class);
 
-    // Club Settings Routes
-    Route::get('/settings', [ClubSettingsController::class, 'edit'])->name('settings.edit');
-    Route::post('/settings/logo', [ClubSettingsController::class, 'updateLogo'])->name('settings.update-logo');
-    Route::patch('/settings/features', [ClubSettingsController::class, 'updateFeatures'])->name('settings.update-features');
-    Route::get('/settings/club', [ClubSettingsController::class, 'index'])->name('settings.club');
-    Route::post('/settings/club/logo', [ClubSettingsController::class, 'updateLogo'])->name('settings.club.logo');
-    Route::delete('/settings/club/logo', [ClubSettingsController::class, 'deleteLogo'])->name('settings.club.logo.delete');
-    Route::post('/settings/club/features', [ClubSettingsController::class, 'updateFeatures'])->name('settings.club.features');
-    Route::get('/settings/categories', [CategoryController::class, 'index'])->name('settings.categories');
+    // Settings Routes
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [ClubSettingsController::class, 'index'])->name('index');
+        Route::patch('/update', [ClubSettingsController::class, 'update'])->name('update');
+        
+        // Club Settings Routes
+        Route::get('/club', [ClubSettingsController::class, 'index'])->name('club');
+        Route::post('/club/logo', [ClubSettingsController::class, 'updateLogo'])->name('club.logo');
+        Route::delete('/club/logo', [ClubSettingsController::class, 'deleteLogo'])->name('club.logo.delete');
+        Route::patch('/club/signature', [ClubSettingsController::class, 'updateDefaultSignature'])->name('club.signature');
+        Route::delete('/club/signature', [ClubSettingsController::class, 'deleteDefaultSignature'])->name('club.signature.delete');
+        
+        // Categories Routes
+        Route::get('/categories', [CategoryController::class, 'index'])->name('categories');
+        
+        // Signature Management Routes
+        Route::resource('signatures', SignatureController::class);
+    });
+
+    // Financial Reports Routes
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/transactions', [ReportController::class, 'transactions'])->name('transactions');
+        Route::get('/income', [ReportController::class, 'income'])->name('income');
+        Route::get('/expenses', [ReportController::class, 'expenses'])->name('expenses');
+        Route::get('/entities', [ReportController::class, 'entities'])->name('entities');
+        Route::get('/bank-accounts', [ReportController::class, 'bankAccounts'])->name('bank-accounts');
+        Route::get('/category-summary', [ReportController::class, 'categorySummary'])->name('category-summary');
+        
+        // Export routes
+        Route::post('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
+        Route::post('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
+        Route::post('/export/csv', [ReportController::class, 'exportCsv'])->name('export.csv');
+    });
+
+    Route::patch('/financial-transactions/{transaction}/signature', [FinancialTransactionController::class, 'updateSignature'])
+        ->name('financial-transactions.update-signature');
 
     // Attendances
     Route::get('events/attendances', [AttendanceController::class, 'index'])
@@ -97,22 +126,6 @@ Route::middleware('auth')->group(function () {
         ->name('events.remove-attachment');
 
     Route::resource('categories', CategoryController::class);
-
-    // Financial Reports Routes
-    Route::prefix('reports')->name('reports.')->group(function () {
-        Route::get('/', [ReportController::class, 'index'])->name('index');
-        Route::get('/transactions', [ReportController::class, 'transactions'])->name('transactions');
-        Route::get('/income', [ReportController::class, 'income'])->name('income');
-        Route::get('/expenses', [ReportController::class, 'expenses'])->name('expenses');
-        Route::get('/categories', [ReportController::class, 'categories'])->name('categories');
-        Route::get('/entities', [ReportController::class, 'entities'])->name('entities');
-        Route::get('/bank-accounts', [ReportController::class, 'bankAccounts'])->name('bank-accounts');
-        
-        // Export routes
-        Route::post('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
-        Route::post('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
-        Route::post('/export/csv', [ReportController::class, 'exportCsv'])->name('export.csv');
-    });
 });
 
 require __DIR__.'/auth.php';

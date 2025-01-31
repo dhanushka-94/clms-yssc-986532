@@ -49,11 +49,26 @@
                                         {{ $sponsor->sponsor_id }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            {{ $sponsor->company_name }}
-                                        </div>
-                                        <div class="text-sm text-gray-500">
-                                            {{ $sponsor->contact_person }}
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                @if($sponsor->profile_picture)
+                                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ asset('storage/' . $sponsor->profile_picture) }}" alt="{{ $sponsor->name }}">
+                                                @else
+                                                    <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                        <span class="text-yellow-800 font-medium text-sm">
+                                                            {{ strtoupper(substr($sponsor->name, 0, 2)) }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ $sponsor->name }}
+                                                </div>
+                                                <div class="text-sm text-gray-500">
+                                                    {{ $sponsor->contact_person }}
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -77,7 +92,7 @@
                                             LKR {{ number_format($sponsor->sponsorship_amount, 2) }}
                                         </div>
                                         <div class="text-xs text-gray-500">
-                                            Until {{ $sponsor->contract_end_date->format('Y-m-d') }}
+                                            Until {{ $sponsor->sponsorship_end_date ? $sponsor->sponsorship_end_date->format('Y-m-d') : 'N/A' }}
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

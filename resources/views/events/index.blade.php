@@ -121,7 +121,7 @@
                                                     {{ __('Edit') }}
                                                 </a>
                                                 @if($event->status === 'scheduled')
-                                                    <a href="{{ route('attendances.create', $event) }}" class="text-green-600 hover:text-green-900">
+                                                    <a href="{{ route('events.attendances.create', $event) }}" class="text-green-600 hover:text-green-900">
                                                         {{ __('Take Attendance') }}
                                                     </a>
                                                 @endif

@@ -8,7 +8,8 @@
         'status' => false,
         'bank_account' => false,
     ],
-    'bankAccounts' => []
+    'bankAccounts' => [],
+    'categories' => []
 ])
 
 <div class="bg-white p-4 rounded-lg shadow mb-6">
@@ -48,13 +49,11 @@
                 <x-input-label for="category" :value="__('Category')" />
                 <select id="category" name="category" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                     <option value="">All Categories</option>
-                    <option value="membership_fee" {{ request('category') === 'membership_fee' ? 'selected' : '' }}>Membership Fee</option>
-                    <option value="sponsorship" {{ request('category') === 'sponsorship' ? 'selected' : '' }}>Sponsorship</option>
-                    <option value="salary" {{ request('category') === 'salary' ? 'selected' : '' }}>Salary</option>
-                    <option value="allowance" {{ request('category') === 'allowance' ? 'selected' : '' }}>Allowance</option>
-                    <option value="equipment" {{ request('category') === 'equipment' ? 'selected' : '' }}>Equipment</option>
-                    <option value="maintenance" {{ request('category') === 'maintenance' ? 'selected' : '' }}>Maintenance</option>
-                    <option value="other" {{ request('category') === 'other' ? 'selected' : '' }}>Other</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->name }}" {{ request('category') === $category->name ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
             @endif

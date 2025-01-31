@@ -58,6 +58,10 @@ class BankAccountController extends Controller
 
     public function show(BankAccount $bankAccount): View
     {
+        $bankAccount->load(['financialTransactions' => function($query) {
+            $query->latest('transaction_date')->take(5);
+        }]);
+        
         return view('bank-accounts.show', compact('bankAccount'));
     }
 

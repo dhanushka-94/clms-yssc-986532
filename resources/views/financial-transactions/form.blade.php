@@ -32,7 +32,10 @@
             <!-- Category -->
             <div>
                 <x-input-label for="category" :value="__('Category *')" />
-                <x-text-input id="category" name="category" type="text" class="mt-1 block w-full" :value="old('category', $transaction?->category ?? '')" required />
+                <select id="category" name="category" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                    <option value="">Select Category</option>
+                    <!-- Categories will be populated dynamically based on transaction type -->
+                </select>
                 <x-input-error :messages="$errors->get('category')" class="mt-2" />
             </div>
 
@@ -77,9 +80,9 @@
 
             <!-- Transaction For -->
             <div class="col-span-2">
-                <x-input-label for="transactionable_type" :value="__('Transaction For')" />
+                <x-input-label for="transactionable_type" :value="__('Transaction For (Optional)')" />
                 <select id="transactionable_type" name="transactionable_type" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                    <option value="">Select Type</option>
+                    <option value="">Select Type (Optional)</option>
                     <option value="App\Models\Player" {{ old('transactionable_type', $transaction?->transactionable_type ?? '') == 'App\Models\Player' ? 'selected' : '' }}>Player</option>
                     <option value="App\Models\Staff" {{ old('transactionable_type', $transaction?->transactionable_type ?? '') == 'App\Models\Staff' ? 'selected' : '' }}>Staff</option>
                     <option value="App\Models\Member" {{ old('transactionable_type', $transaction?->transactionable_type ?? '') == 'App\Models\Member' ? 'selected' : '' }}>Member</option>
@@ -95,12 +98,13 @@
                     <option value="">Select Entity</option>
                 </select>
                 <x-input-error :messages="$errors->get('transactionable_id')" class="mt-2" />
+                <p class="mt-1 text-sm text-gray-500">Select the specific entity this transaction is related to (optional)</p>
             </div>
 
             <!-- Description -->
             <div class="col-span-2">
-                <x-input-label for="description" :value="__('Description *')" />
-                <textarea id="description" name="description" rows="3" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>{{ old('description', $transaction?->description ?? '') }}</textarea>
+                <x-input-label for="description" :value="__('Description (Optional)')" />
+                <textarea id="description" name="description" rows="3" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('description', $transaction?->description ?? '') }}</textarea>
                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
             </div>
 
@@ -127,16 +131,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Form Actions -->
-    <div class="flex items-center justify-end space-x-3">
-        <x-secondary-button onclick="window.history.back()">
-            {{ __('Cancel') }}
-        </x-secondary-button>
-        <x-primary-button>
-            {{ isset($transaction) ? __('Update Transaction') : __('Create Transaction') }}
-        </x-primary-button>
-    </div>
 </div>
 
 @push('scripts')
@@ -145,11 +139,44 @@
         const transactionableTypeSelect = document.getElementById('transactionable_type');
         const transactionableIdSelect = document.getElementById('transactionable_id');
         const relatedEntityContainer = document.getElementById('related-entity-container');
+        const typeSelect = document.getElementById('type');
+        const categorySelect = document.getElementById('category');
         
         const players = @json($players);
         const staff = @json($staff);
         const members = @json($members);
         const sponsors = @json($sponsors);
+        const incomeCategories = @json($incomeCategories);
+        const expenseCategories = @json($expenseCategories);
+        
+        // Function to update categories based on transaction type
+        function updateCategories() {
+            const selectedType = typeSelect.value;
+            categorySelect.innerHTML = '<option value="">Select Category</option>';
+            
+            if (!selectedType) return;
+            
+            const categories = selectedType === 'income' ? incomeCategories : expenseCategories;
+            const oldCategory = '{{ old('category', $transaction?->category ?? '') }}';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                if (category.id.toString() === oldCategory) {
+                    option.selected = true;
+                }
+                categorySelect.appendChild(option);
+            });
+        }
+        
+        // Update categories when transaction type changes
+        typeSelect.addEventListener('change', updateCategories);
+        
+        // Update categories on initial load if type is already selected
+        if (typeSelect.value) {
+            updateCategories();
+        }
         
         transactionableTypeSelect.addEventListener('change', function() {
             const selectedType = this.value;
@@ -178,11 +205,13 @@
                     entities = [];
             }
             
+            const oldTransactionableId = '{{ old('transactionable_id', $transaction?->transactionable_id ?? '') }}';
+            
             entities.forEach(entity => {
                 const option = document.createElement('option');
                 option.value = entity.id;
-                option.textContent = entity.first_name ? `${entity.first_name} ${entity.last_name}` : entity.company_name;
-                if (entity.id == {{ old('transactionable_id', $transaction?->transactionable_id ?? 'null') }}) {
+                option.textContent = entity.first_name ? `${entity.first_name} ${entity.last_name}` : entity.name;
+                if (entity.id.toString() === oldTransactionableId) {
                     option.selected = true;
                 }
                 transactionableIdSelect.appendChild(option);

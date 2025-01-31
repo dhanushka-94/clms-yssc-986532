@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sponsors', function (Blueprint $table) {
-            $table->date('sponsorship_start_date')->after('sponsorship_amount');
-            $table->date('sponsorship_end_date')->after('sponsorship_start_date');
+            if (!Schema::hasColumn('sponsors', 'sponsorship_start_date')) {
+                $table->date('sponsorship_start_date')->after('sponsorship_amount');
+            }
+            if (!Schema::hasColumn('sponsors', 'sponsorship_end_date')) {
+                $table->date('sponsorship_end_date')->after('sponsorship_start_date');
+            }
         });
     }
 
@@ -23,7 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sponsors', function (Blueprint $table) {
-            $table->dropColumn(['sponsorship_start_date', 'sponsorship_end_date']);
+            if (Schema::hasColumn('sponsors', 'sponsorship_start_date')) {
+                $table->dropColumn('sponsorship_start_date');
+            }
+            if (Schema::hasColumn('sponsors', 'sponsorship_end_date')) {
+                $table->dropColumn('sponsorship_end_date');
+            }
         });
     }
 };

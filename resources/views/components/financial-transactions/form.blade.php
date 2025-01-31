@@ -120,6 +120,49 @@
         @endif
     </div>
 
+    <!-- Signature Section -->
+    <div class="md:col-span-2 border-t pt-6 mt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Signature</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Signature Upload -->
+            <div>
+                <x-input-label for="signature" :value="__('Signature (PNG only)')" />
+                <input type="file" id="signature" name="signature" 
+                    class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                    accept=".png">
+                <p class="mt-1 text-sm text-gray-600">
+                    Please upload a PNG file of your signature (preferably with transparent background)
+                </p>
+                <x-input-error class="mt-2" :messages="$errors->get('signature')" />
+            </div>
+
+            <!-- Signatory Name -->
+            <div>
+                <x-input-label for="signatory_name" :value="__('Signatory Name')" />
+                <x-text-input id="signatory_name" name="signatory_name" type="text" class="mt-1 block w-full" 
+                    :value="old('signatory_name', $transaction?->signatory_name)" />
+                <x-input-error class="mt-2" :messages="$errors->get('signatory_name')" />
+            </div>
+
+            <!-- Signatory Designation -->
+            <div>
+                <x-input-label for="signatory_designation" :value="__('Signatory Designation')" />
+                <x-text-input id="signatory_designation" name="signatory_designation" type="text" class="mt-1 block w-full" 
+                    :value="old('signatory_designation', $transaction?->signatory_designation)" />
+                <x-input-error class="mt-2" :messages="$errors->get('signatory_designation')" />
+            </div>
+
+            @if($transaction && $transaction->signature)
+            <div>
+                <x-input-label :value="__('Current Signature')" />
+                <div class="mt-2">
+                    <img src="{{ Storage::url($transaction->signature) }}" alt="Current Signature" class="max-h-20">
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+
     <!-- Description -->
     <div class="md:col-span-2">
         <x-input-label for="description" :value="__('Description')" />

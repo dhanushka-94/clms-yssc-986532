@@ -1,6 +1,97 @@
 @props(['member' => null])
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Profile Picture -->
+    <div class="md:col-span-2">
+        <x-input-label for="profile_picture" :value="__('Profile Picture')" />
+        <div class="mt-1 flex items-center gap-x-6">
+            <div class="flex-none">
+                <!-- Preview container -->
+                <div id="preview-container" class="h-24 w-24 rounded-full bg-yellow-100 flex items-center justify-center overflow-hidden">
+                    @if($member && $member->profile_picture)
+                        <img src="{{ asset('storage/' . $member->profile_picture) }}" 
+                            alt="Current Profile Picture" 
+                            class="h-full w-full object-cover" 
+                            id="preview-image">
+                    @else
+                        <span class="text-yellow-800 font-bold text-2xl" id="preview-text">
+                            {{ $member ? strtoupper(substr($member->first_name, 0, 1)) : 'UP' }}
+                        </span>
+                        <img src="" alt="Profile Preview" class="h-full w-full object-cover hidden" id="preview-image">
+                    @endif
+                </div>
+            </div>
+            <div class="flex-grow">
+                <input type="file" 
+                    id="profile_picture" 
+                    name="profile_picture" 
+                    class="mt-1 block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-yellow-50 file:text-yellow-700
+                    hover:file:bg-yellow-100"
+                    accept="image/*"
+                    onchange="previewImage(this)">
+                <div class="mt-2 text-sm text-gray-500">
+                    Accepted formats: JPG, JPEG, PNG, GIF (Max size: 2MB)
+                </div>
+                <div id="validation-message" class="mt-2 text-sm hidden"></div>
+                <x-input-error class="mt-2" :messages="$errors->get('profile_picture')" />
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('preview-image');
+            const previewText = document.getElementById('preview-text');
+            const validationMessage = document.getElementById('validation-message');
+            const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+
+            validationMessage.classList.remove('text-red-500', 'text-green-500');
+            validationMessage.classList.add('hidden');
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                // Validate file size
+                if (file.size > maxSize) {
+                    validationMessage.textContent = 'File size exceeds 2MB limit';
+                    validationMessage.classList.remove('hidden');
+                    validationMessage.classList.add('text-red-500');
+                    input.value = '';
+                    return;
+                }
+
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+                if (!validTypes.includes(file.type)) {
+                    validationMessage.textContent = 'Invalid file type. Please upload JPG, JPEG, PNG, or GIF';
+                    validationMessage.classList.remove('hidden');
+                    validationMessage.classList.add('text-red-500');
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    if (previewText) previewText.classList.add('hidden');
+                    validationMessage.textContent = 'Valid image selected';
+                    validationMessage.classList.remove('hidden');
+                    validationMessage.classList.add('text-green-500');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.classList.add('hidden');
+                if (previewText) previewText.classList.remove('hidden');
+            }
+        }
+    </script>
+
     <!-- First Name -->
     <div>
         <x-input-label for="first_name" :value="__('First Name')" />

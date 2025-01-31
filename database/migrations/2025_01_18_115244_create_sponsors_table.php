@@ -13,16 +13,20 @@ return new class extends Migration
     {
         Schema::create('sponsors', function (Blueprint $table) {
             $table->id();
-            $table->string('company_name');
+            $table->string('sponsor_id')->unique();
+            $table->string('name');
             $table->string('contact_person');
             $table->string('email')->unique();
             $table->string('phone');
+            $table->string('whatsapp_number')->nullable();
             $table->string('address');
+            $table->enum('sponsorship_type', ['main', 'co', 'other']);
             $table->decimal('sponsorship_amount', 10, 2);
-            $table->date('contract_start_date');
-            $table->date('contract_end_date');
-            $table->enum('status', ['active', 'inactive', 'expired']);
-            $table->text('terms_and_conditions')->nullable();
+            $table->date('sponsorship_start_date');
+            $table->date('sponsorship_end_date');
+            $table->enum('status', ['active', 'inactive']);
+            $table->string('profile_picture')->nullable();
+            $table->json('attachments')->nullable();
             $table->timestamps();
         });
     }

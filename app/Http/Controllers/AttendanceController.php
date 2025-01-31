@@ -18,13 +18,30 @@ class AttendanceController extends Controller
         'members' => Member::class,
     ];
 
+    protected function getTableName($attendeeClass): string
+    {
+        if ($attendeeClass === Staff::class) {
+            return 'staff';
+        }
+        return strtolower(class_basename($attendeeClass)).'s';
+    }
+
     public function index(): View
     {
         // Group events by type
         $eventsByType = [
-            'match' => Event::where('type', 'match')->with(['attendances'])->orderBy('start_time', 'desc')->get(),
-            'practice' => Event::where('type', 'practice')->with(['attendances'])->orderBy('start_time', 'desc')->get(),
-            'meeting' => Event::where('type', 'meeting')->with(['attendances'])->orderBy('start_time', 'desc')->get(),
+            'match' => Event::where('type', 'match')
+                ->with(['attendances', 'players', 'staff', 'members'])
+                ->orderBy('start_time', 'desc')
+                ->get(),
+            'practice' => Event::where('type', 'practice')
+                ->with(['attendances', 'players', 'staff', 'members'])
+                ->orderBy('start_time', 'desc')
+                ->get(),
+            'meeting' => Event::where('type', 'meeting')
+                ->with(['attendances', 'players', 'staff', 'members'])
+                ->orderBy('start_time', 'desc')
+                ->get(),
         ];
 
         // Calculate stats for each event type
@@ -73,7 +90,7 @@ class AttendanceController extends Controller
 
         $validated = $request->validate([
             'attendances' => ['required', 'array'],
-            'attendances.*.attendee_id' => ['required', 'exists:'.strtolower(class_basename($attendeeClass)).'s,id'],
+            'attendances.*.attendee_id' => ['required', 'exists:'.$this->getTableName($attendeeClass).',id'],
             'attendances.*.status' => ['required', 'in:present,absent,late,excused'],
             'attendances.*.check_in_time' => ['nullable', 'date_format:H:i'],
             'attendances.*.check_out_time' => ['nullable', 'date_format:H:i', 'after:attendances.*.check_in_time'],
@@ -120,7 +137,7 @@ class AttendanceController extends Controller
 
         $validated = $request->validate([
             'attendances' => ['required', 'array'],
-            'attendances.*.attendee_id' => ['required', 'exists:'.strtolower(class_basename($attendeeClass)).'s,id'],
+            'attendances.*.attendee_id' => ['required', 'exists:'.$this->getTableName($attendeeClass).',id'],
             'attendances.*.status' => ['required', 'in:present,absent,late,excused'],
             'attendances.*.check_in_time' => ['nullable', 'date_format:H:i'],
             'attendances.*.check_out_time' => ['nullable', 'date_format:H:i', 'after:attendances.*.check_in_time'],
@@ -169,7 +186,7 @@ class AttendanceController extends Controller
         $validated = $request->validate([
             'status' => ['required', 'in:present,absent,late,excused'],
             'attendee_ids' => ['required', 'array'],
-            'attendee_ids.*' => ['exists:'.strtolower(class_basename($attendeeClass)).'s,id'],
+            'attendee_ids.*' => ['exists:'.$this->getTableName($attendeeClass).',id'],
         ]);
 
         $event->attendances()

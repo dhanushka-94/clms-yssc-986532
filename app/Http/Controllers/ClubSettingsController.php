@@ -10,7 +10,39 @@ class ClubSettingsController extends Controller
 {
     public function index()
     {
-        return view('settings.club');
+        $clubSettings = ClubSettings::first();
+        return view('settings.club', compact('clubSettings'));
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'registration_number' => 'nullable|string|max:255',
+            'tax_number' => 'nullable|string|max:255',
+        ]);
+
+        $clubSettings = ClubSettings::first();
+        if (!$clubSettings) {
+            $clubSettings = new ClubSettings();
+        }
+
+        $clubSettings->fill($request->only([
+            'name',
+            'email',
+            'phone',
+            'address',
+            'registration_number',
+            'tax_number',
+        ]));
+        
+        $clubSettings->save();
+
+        return redirect()->route('settings.club')
+            ->with('success', 'Club details have been updated successfully.');
     }
 
     public function updateLogo(Request $request)
@@ -20,22 +52,24 @@ class ClubSettingsController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            // Get club settings
-            $clubSettings = ClubSettings::first();
+            // Get or create club settings
+            $clubSettings = ClubSettings::firstOrCreate(
+                [],
+                ['name' => config('app.name')] // Set a default name if creating new record
+            );
             
             // Delete old logo if exists
-            if ($clubSettings && $clubSettings->logo_path) {
-                Storage::disk('public')->delete($clubSettings->logo_path);
+            if ($clubSettings->logo_path) {
+                if (file_exists(public_path('images/' . $clubSettings->logo_path))) {
+                    unlink(public_path('images/' . $clubSettings->logo_path));
+                }
             }
 
             // Store new logo
-            $logoPath = 'logos/club-logo.png';
-            Storage::disk('public')->put($logoPath, file_get_contents($request->file('logo')));
+            $logoPath = 'club-logo.' . $request->file('logo')->extension();
+            $request->file('logo')->move(public_path('images'), $logoPath);
             
             // Update club settings with new logo path
-            if (!$clubSettings) {
-                $clubSettings = new ClubSettings();
-            }
             $clubSettings->logo_path = $logoPath;
             $clubSettings->save();
 
@@ -52,7 +86,9 @@ class ClubSettingsController extends Controller
         $clubSettings = ClubSettings::first();
         
         if ($clubSettings && $clubSettings->logo_path) {
-            Storage::disk('public')->delete($clubSettings->logo_path);
+            if (file_exists(public_path('images/' . $clubSettings->logo_path))) {
+                unlink(public_path('images/' . $clubSettings->logo_path));
+            }
             $clubSettings->logo_path = null;
             $clubSettings->save();
             
@@ -64,23 +100,59 @@ class ClubSettingsController extends Controller
             ->with('error', 'No logo found to delete.');
     }
 
-    public function updateFeatures(Request $request)
+    public function updateDefaultSignature(Request $request)
     {
-        $memberLogin = $request->has('member_login');
-        $staffLogin = $request->has('staff_login');
-        $playerLogin = $request->has('player_login');
+        $request->validate([
+            'default_signature' => 'nullable|file|mimes:png|max:2048',
+            'default_signatory_name' => 'nullable|string|max:255',
+            'default_signatory_designation' => 'nullable|string|max:255',
+        ]);
+
+        $clubSettings = ClubSettings::first();
+        if (!$clubSettings) {
+            $clubSettings = new ClubSettings();
+        }
+
+        // Handle signature file upload if present
+        if ($request->hasFile('default_signature')) {
+            // Delete old signature if exists
+            if ($clubSettings->default_signature) {
+                Storage::disk('public')->delete($clubSettings->default_signature);
+            }
+
+            // Store new signature
+            $signaturePath = $request->file('default_signature')->store('signatures', 'public');
+            $clubSettings->default_signature = $signaturePath;
+        }
+
+        // Handle signatory details if present
+        if ($request->filled('default_signatory_name') || $request->filled('default_signatory_designation')) {
+            $clubSettings->default_signatory_name = $request->default_signatory_name;
+            $clubSettings->default_signatory_designation = $request->default_signatory_designation;
+        }
+
+        $clubSettings->save();
+
+        return redirect()->route('settings.club')
+            ->with('success', 'Default signature settings have been updated successfully.');
+    }
+
+    public function deleteDefaultSignature()
+    {
+        $clubSettings = ClubSettings::first();
         
-        // Update the configuration file
-        $configPath = config_path('club.php');
-        $config = include $configPath;
-        
-        $config['features']['member_login'] = $memberLogin;
-        $config['features']['staff_login'] = $staffLogin;
-        $config['features']['player_login'] = $playerLogin;
-        
-        // Write the updated configuration back to the file
-        file_put_contents($configPath, '<?php return ' . var_export($config, true) . ';');
-        
-        return back()->with('success', 'System access settings updated successfully.');
+        if ($clubSettings && $clubSettings->default_signature) {
+            Storage::disk('public')->delete($clubSettings->default_signature);
+            $clubSettings->default_signature = null;
+            $clubSettings->default_signatory_name = null;
+            $clubSettings->default_signatory_designation = null;
+            $clubSettings->save();
+            
+            return redirect()->route('settings.club')
+                ->with('success', 'Default signature has been removed successfully.');
+        }
+
+        return redirect()->route('settings.club')
+            ->with('error', 'No default signature found to delete.');
     }
 } 
