@@ -66,14 +66,14 @@
                                             {{ $account->branch }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <span class="{{ $account->current_balance >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                            <span class="{{ $account->current_balance >= 0 ? 'text-green-600' : 'text-red-600' }} font-medium">
                                                 LKR {{ number_format($account->current_balance, 2) }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
                                             LKR {{ number_format($account->total_income, 2) }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
                                             LKR {{ number_format($account->total_expenses, 2) }}
                                         </td>
                                     </tr>
@@ -84,6 +84,23 @@
                                         </td>
                                     </tr>
                                 @endforelse
+                                <!-- Totals Row -->
+                                <tr class="bg-gray-50 font-bold">
+                                    <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        Total
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <span class="{{ $bankAccounts->sum('current_balance') >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                            LKR {{ number_format($bankAccounts->sum('current_balance'), 2) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">
+                                        LKR {{ number_format($bankAccounts->sum('total_income'), 2) }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">
+                                        LKR {{ number_format($bankAccounts->sum('total_expenses'), 2) }}
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

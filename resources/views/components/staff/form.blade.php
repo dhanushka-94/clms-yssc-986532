@@ -62,10 +62,10 @@
         <x-input-error class="mt-2" :messages="$errors->get('address')" />
     </div>
 
-    <!-- Role -->
+    <!-- Designation -->
     <div>
-        <x-input-label for="role" :value="__('Role')" />
-        <select id="role" name="role" class="mt-1 block w-full border-gray-300 focus:border-yellow-500 focus:ring-yellow-500 rounded-md shadow-sm">
+        <x-input-label for="role" :value="__('Designation *')" />
+        <select id="role" name="role" class="mt-1 block w-full border-gray-300 focus:border-yellow-500 focus:ring-yellow-500 rounded-md shadow-sm" required>
             <option value="coach" {{ old('role', $staff?->role) === 'coach' ? 'selected' : '' }}>Coach</option>
             <option value="assistant_coach" {{ old('role', $staff?->role) === 'assistant_coach' ? 'selected' : '' }}>Assistant Coach</option>
             <option value="physiotherapist" {{ old('role', $staff?->role) === 'physiotherapist' ? 'selected' : '' }}>Physiotherapist</option>

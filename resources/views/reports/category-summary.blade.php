@@ -57,9 +57,8 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Count</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% of Total</th>
                                 </tr>
                             </thead>
@@ -69,14 +68,11 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {{ $category->category }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
-                                            LKR {{ number_format($category->total_amount, 2) }}
-                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $category->transaction_count }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            LKR {{ number_format($category->average_amount, 2) }}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                                            LKR {{ number_format($category->total_amount, 2) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <div class="flex items-center">
@@ -89,20 +85,20 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
                                             No income categories found
                                         </td>
                                     </tr>
                                 @endforelse
                                 <tr class="bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">Total</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                                        LKR {{ number_format($totalIncome, 2) }}
-                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                                         {{ $incomeCategories->sum('transaction_count') }}
                                     </td>
-                                    <td colspan="2"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                        LKR {{ number_format($totalIncome, 2) }}
+                                    </td>
+                                    <td></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -119,9 +115,8 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Count</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% of Total</th>
                                 </tr>
                             </thead>
@@ -131,14 +126,11 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {{ $category->category }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
-                                            LKR {{ number_format($category->total_amount, 2) }}
-                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $category->transaction_count }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            LKR {{ number_format($category->average_amount, 2) }}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
+                                            LKR {{ number_format($category->total_amount, 2) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <div class="flex items-center">
@@ -151,20 +143,20 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
                                             No expense categories found
                                         </td>
                                     </tr>
                                 @endforelse
                                 <tr class="bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">Total</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">
-                                        LKR {{ number_format($totalExpenses, 2) }}
-                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                                         {{ $expenseCategories->sum('transaction_count') }}
                                     </td>
-                                    <td colspan="2"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">
+                                        LKR {{ number_format($totalExpenses, 2) }}
+                                    </td>
+                                    <td></td>
                                 </tr>
                             </tbody>
                         </table>

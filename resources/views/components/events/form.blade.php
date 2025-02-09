@@ -151,6 +151,12 @@
 
         <!-- Tab Contents -->
         <div class="tab-content" id="players-tab">
+            <div class="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                <span class="text-sm font-medium text-gray-700">Select All Players</span>
+                <input type="checkbox" 
+                    id="select-all-players"
+                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($players as $player)
                     <label class="relative flex items-start py-3 px-4 border rounded-lg hover:bg-gray-50">
@@ -167,7 +173,7 @@
                                 name="players[]" 
                                 value="{{ $player->id }}"
                                 {{ in_array($player->id, old('players', $selectedPlayers ?? [])) ? 'checked' : '' }}
-                                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
+                                class="player-checkbox focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
                         </div>
                     </label>
                 @endforeach
@@ -175,6 +181,12 @@
         </div>
 
         <div class="tab-content hidden" id="staff-tab">
+            <div class="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                <span class="text-sm font-medium text-gray-700">Select All Staff</span>
+                <input type="checkbox" 
+                    id="select-all-staff"
+                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($staff as $staffMember)
                     <label class="relative flex items-start py-3 px-4 border rounded-lg hover:bg-gray-50">
@@ -191,7 +203,7 @@
                                 name="staff[]" 
                                 value="{{ $staffMember->id }}"
                                 {{ in_array($staffMember->id, old('staff', $selectedStaff ?? [])) ? 'checked' : '' }}
-                                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
+                                class="staff-checkbox focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
                         </div>
                     </label>
                 @endforeach
@@ -199,6 +211,12 @@
         </div>
 
         <div class="tab-content hidden" id="members-tab">
+            <div class="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                <span class="text-sm font-medium text-gray-700">Select All Members</span>
+                <input type="checkbox" 
+                    id="select-all-members"
+                    class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($members as $member)
                     <label class="relative flex items-start py-3 px-4 border rounded-lg hover:bg-gray-50">
@@ -215,7 +233,7 @@
                                 name="members[]" 
                                 value="{{ $member->id }}"
                                 {{ in_array($member->id, old('members', $selectedMembers ?? [])) ? 'checked' : '' }}
-                                class="focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
+                                class="member-checkbox focus:ring-yellow-500 h-4 w-4 text-yellow-600 border-gray-300 rounded">
                         </div>
                     </label>
                 @endforeach
@@ -329,20 +347,67 @@
         // Initialize with first tab active
         switchTab('players-tab');
 
+        // Select All functionality for Players
+        const selectAllPlayers = document.getElementById('select-all-players');
+        const playerCheckboxes = document.querySelectorAll('.player-checkbox');
+        
+        selectAllPlayers.addEventListener('change', function() {
+            playerCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        // Update select all when individual checkboxes change
+        playerCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                selectAllPlayers.checked = [...playerCheckboxes].every(cb => cb.checked);
+            });
+        });
+
+        // Select All functionality for Staff
+        const selectAllStaff = document.getElementById('select-all-staff');
+        const staffCheckboxes = document.querySelectorAll('.staff-checkbox');
+        
+        selectAllStaff.addEventListener('change', function() {
+            staffCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        staffCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                selectAllStaff.checked = [...staffCheckboxes].every(cb => cb.checked);
+            });
+        });
+
+        // Select All functionality for Members
+        const selectAllMembers = document.getElementById('select-all-members');
+        const memberCheckboxes = document.querySelectorAll('.member-checkbox');
+        
+        selectAllMembers.addEventListener('change', function() {
+            memberCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        memberCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                selectAllMembers.checked = [...memberCheckboxes].every(cb => cb.checked);
+            });
+        });
+
         // Search functionality
         const searchInput = document.getElementById('attendee-search');
-        const allLabels = document.querySelectorAll('.tab-content label');
+        const allAttendeeLabels = document.querySelectorAll('label.relative');
 
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
 
-            allLabels.forEach(label => {
-                const text = label.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    label.style.display = '';
-                } else {
-                    label.style.display = 'none';
-                }
+            allAttendeeLabels.forEach(label => {
+                const name = label.querySelector('.font-medium').textContent.toLowerCase();
+                const info = label.querySelector('.text-gray-500').textContent.toLowerCase();
+                const matches = name.includes(searchTerm) || info.includes(searchTerm);
+                label.style.display = matches ? '' : 'none';
             });
         });
     });

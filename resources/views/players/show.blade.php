@@ -325,23 +325,84 @@
 
                         <!-- Recent Transactions -->
                         <div class="md:col-span-2 bg-yellow-50 p-6 rounded-lg transactions-section">
-                            <h3 class="text-lg font-semibold text-yellow-800 mb-4">Recent Transactions</h3>
+                            <h3 class="text-lg font-semibold text-yellow-800 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                Financial Transactions
+                            </h3>
+
+                            <!-- Transaction Summary -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <!-- Total Income -->
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="p-2 rounded-full bg-green-100 mr-3">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-500">Total Income</p>
+                                            <p class="text-lg font-semibold text-green-600">LKR {{ number_format($totalIncome, 2) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Total Expenses -->
+                                <div class="bg-red-50 p-4 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="p-2 rounded-full bg-red-100 mr-3">
+                                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-500">Total Expenses</p>
+                                            <p class="text-lg font-semibold text-red-600">LKR {{ number_format($totalExpenses, 2) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             @if($player->financialTransactions->count() > 0)
                                 <div class="space-y-4">
-                                    @foreach($player->financialTransactions->take(5) as $transaction)
-                                        <div class="border-l-4 border-yellow-400 pl-4">
-                                            <div class="text-sm font-medium text-gray-900">
-                                                {{ $transaction->description }}
+                                    @foreach($player->financialTransactions as $transaction)
+                                        <div class="border-l-4 {{ $transaction->type === 'income' ? 'border-green-400' : 'border-red-400' }} pl-4 py-2 hover:bg-yellow-100 rounded-r transition-colors">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">
+                                                        {{ $transaction->description }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        {{ $transaction->transaction_date->format('Y-m-d') }} • 
+                                                        {{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }} • 
+                                                        {{ $transaction->bankAccount->bank_name }}
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm font-medium {{ $transaction->type === 'income' ? 'text-green-600' : 'text-red-600' }}">
+                                                    {{ $transaction->type === 'income' ? '+' : '-' }}
+                                                    LKR {{ number_format($transaction->amount, 2) }}
+                                                </div>
                                             </div>
-                                            <div class="text-sm text-gray-500">
-                                                {{ $transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : 'Date not specified' }} - 
-                                                LKR {{ number_format($transaction->amount, 2) }}
+                                            <div class="mt-1">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $transaction->type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                    {{ ucfirst($transaction->category) }}
+                                                </span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 ml-2">
+                                                    {{ $transaction->transaction_number }}
+                                                </span>
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
                             @else
-                                <p class="text-sm text-gray-500">No transactions found.</p>
+                                <div class="text-center py-4">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">No transactions found</p>
+                                </div>
                             @endif
                         </div>
 

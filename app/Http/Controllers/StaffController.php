@@ -10,9 +10,55 @@ use Illuminate\View\View;
 
 class StaffController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $staff = Staff::orderBy('created_at', 'desc')->paginate(10);
+        $query = Staff::query();
+
+        // Handle search
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('first_name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('last_name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('employee_id', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('nic', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('phone', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('role', 'like', '%' . $searchTerm . '%')
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ['%' . $searchTerm . '%']);
+            });
+        }
+
+        // Handle status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Handle sort
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        
+        // Define allowed sort fields
+        $allowedSorts = [
+            'id' => 'employee_id',
+            'name' => 'first_name',
+            'position' => 'role',
+            'contact' => 'phone',
+            'status' => 'status',
+            'date' => 'joined_date',
+            'created_at' => 'created_at'
+        ];
+
+        // Apply sort if it's allowed
+        if (array_key_exists($sortField, $allowedSorts)) {
+            $query->orderBy($allowedSorts[$sortField], $sortDirection);
+        }
+
+        // Always include a secondary sort by ID to ensure consistent ordering
+        $query->orderBy('id', 'desc');
+
+        // Get paginated results
+        $staff = $query->paginate(10)->withQueryString();
+
         return view('staff.index', compact('staff'));
     }
 

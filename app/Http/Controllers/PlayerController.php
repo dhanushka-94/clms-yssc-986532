@@ -14,11 +14,55 @@ use Illuminate\View\View;
 
 class PlayerController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $players = Player::with('user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $query = Player::query();
+
+        // Handle search
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('first_name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('last_name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('player_id', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('nic', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('phone', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('position', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('jersey_number', 'like', '%' . $searchTerm . '%')
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ['%' . $searchTerm . '%']);
+            });
+        }
+
+        // Handle status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Handle sort
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        
+        // Define allowed sort fields
+        $allowedSorts = [
+            'id' => 'player_id',
+            'name' => 'first_name',
+            'position' => 'position',
+            'jersey' => 'jersey_number',
+            'status' => 'status',
+            'contract' => 'contract_amount',
+            'created_at' => 'created_at'
+        ];
+
+        // Apply sort if it's allowed
+        if (array_key_exists($sortField, $allowedSorts)) {
+            $query->orderBy($allowedSorts[$sortField], $sortDirection);
+        }
+
+        // Always include a secondary sort by ID to ensure consistent ordering
+        $query->orderBy('id', 'desc');
+
+        // Get paginated results
+        $players = $query->paginate(10)->withQueryString();
 
         return view('players.index', compact('players'));
     }
@@ -163,11 +207,28 @@ class PlayerController extends Controller
 
     public function show(Player $player): View
     {
+        // Load the player's financial transactions
         $player->load(['user', 'financialTransactions' => function ($query) {
-            $query->latest()->take(5);
+            $query->where('status', 'completed')
+                  ->orderBy('transaction_date', 'desc')
+                  ->orderBy('created_at', 'desc');
         }]);
 
-        return view('players.show', compact('player'));
+        // Calculate totals using query builder for better performance
+        $totals = DB::table('financial_transactions')
+            ->where('transactionable_type', 'App\\Models\\Player')
+            ->where('transactionable_id', $player->id)
+            ->where('status', 'completed')
+            ->selectRaw('
+                SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) as total_expenses
+            ')
+            ->first();
+
+        $totalIncome = $totals->total_income ?? 0;
+        $totalExpenses = $totals->total_expenses ?? 0;
+
+        return view('players.show', compact('player', 'totalIncome', 'totalExpenses'));
     }
 
     public function edit(Player $player): View

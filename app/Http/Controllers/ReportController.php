@@ -164,6 +164,12 @@ class ReportController extends Controller
 
     public function expenses(Request $request): View
     {
+        // Get expense categories first
+        $categories = Category::where('type', 'expense')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
         $query = FinancialTransaction::with(['bankAccount', 'transactionable'])
             ->where('type', 'expense');
         
@@ -173,6 +179,18 @@ class ReportController extends Controller
         }
         if ($request->filled('date_to')) {
             $query->where('transaction_date', '<=', $request->date_to);
+        }
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->payment_method);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('bank_account_id')) {
+            $query->where('bank_account_id', $request->bank_account_id);
         }
 
         $transactions = $query->latest('transaction_date')->paginate(15);
@@ -209,7 +227,8 @@ class ReportController extends Controller
             'yearlyExpenses',
             'monthlyData',
             'categoryData',
-            'bankAccounts'
+            'bankAccounts',
+            'categories'
         ));
     }
 
@@ -235,7 +254,17 @@ class ReportController extends Controller
 
     public function bankAccounts(Request $request): View
     {
-        $bankAccounts = BankAccount::withSum('financialTransactions', 'amount')->get();
+        $bankAccounts = BankAccount::select([
+            'bank_accounts.*',
+            DB::raw('(SELECT COALESCE(SUM(amount), 0) FROM financial_transactions 
+                WHERE financial_transactions.bank_account_id = bank_accounts.id 
+                AND type = "income" 
+                AND status = "completed") as total_income'),
+            DB::raw('(SELECT COALESCE(SUM(amount), 0) FROM financial_transactions 
+                WHERE financial_transactions.bank_account_id = bank_accounts.id 
+                AND type = "expense" 
+                AND status = "completed") as total_expenses')
+        ])->get();
         
         return view('reports.bank-accounts', compact('bankAccounts'));
     }
@@ -251,8 +280,7 @@ class ReportController extends Controller
             ->select(
                 'category',
                 DB::raw('COUNT(*) as transaction_count'),
-                DB::raw('SUM(amount) as total_amount'),
-                DB::raw('AVG(amount) as average_amount')
+                DB::raw('SUM(amount) as total_amount')
             )
             ->groupBy('category')
             ->orderByDesc('total_amount')
@@ -264,8 +292,7 @@ class ReportController extends Controller
             ->select(
                 'category',
                 DB::raw('COUNT(*) as transaction_count'),
-                DB::raw('SUM(amount) as total_amount'),
-                DB::raw('AVG(amount) as average_amount')
+                DB::raw('SUM(amount) as total_amount')
             )
             ->groupBy('category')
             ->orderByDesc('total_amount')

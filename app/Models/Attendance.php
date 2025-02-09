@@ -22,8 +22,13 @@ class Attendance extends Model
     ];
 
     protected $casts = [
-        'check_in_time' => 'datetime',
-        'check_out_time' => 'datetime'
+        'check_in_time' => 'datetime:H:i',
+        'check_out_time' => 'datetime:H:i'
+    ];
+
+    protected $dates = [
+        'check_in_time',
+        'check_out_time'
     ];
 
     public function event(): BelongsTo
@@ -34,5 +39,16 @@ class Attendance extends Model
     public function attendee(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    // Helper method to safely get formatted time
+    public function getFormattedTime($field)
+    {
+        try {
+            return $this->{$field} ? $this->{$field}->format('H:i') : null;
+        } catch (\Exception $e) {
+            \Log::error("Error formatting {$field}: " . $e->getMessage());
+            return null;
+        }
     }
 }

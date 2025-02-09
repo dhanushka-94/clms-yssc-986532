@@ -10,9 +10,47 @@ use Illuminate\View\View;
 
 class MemberController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $members = Member::orderBy('created_at', 'desc')->paginate(10);
+        $query = Member::query();
+
+        // Search functionality
+        if ($search = $request->input('search')) {
+            $query->where(function($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('membership_number', 'like', "%{$search}%")
+                  ->orWhere('nic', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
+        }
+
+        // Sorting
+        $sortField = $request->input('sort', 'created_at');
+        $direction = $request->input('direction', 'desc');
+
+        // Map sort fields to actual database columns
+        $sortFieldMap = [
+            'id' => 'membership_number',
+            'name' => 'first_name',
+            'contact' => 'phone',
+            'status' => 'status',
+            'date' => 'joined_date',
+            'created_at' => 'created_at'
+        ];
+
+        $sortField = $sortFieldMap[$sortField] ?? 'created_at';
+        $query->orderBy($sortField, $direction);
+
+        // Get paginated results
+        $members = $query->paginate(10)->withQueryString();
+
         return view('members.index', compact('members'));
     }
 

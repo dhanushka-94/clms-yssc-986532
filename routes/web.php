@@ -126,6 +126,10 @@ Route::middleware('auth')->group(function () {
         ->name('events.remove-attachment');
 
     Route::resource('categories', CategoryController::class);
+
+    // Attendance Report
+    Route::get('attendances/report', [AttendanceController::class, 'report'])
+        ->name('attendances.report');
 });
 
 require __DIR__.'/auth.php';
