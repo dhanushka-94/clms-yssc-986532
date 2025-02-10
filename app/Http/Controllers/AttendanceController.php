@@ -45,7 +45,7 @@ class AttendanceController extends Controller
                                 $query->select('id', 'event_id', 'attendee_type', 'attendee_id', 'status');
                             }
                         ])
-                        ->orderBy('start_time', 'desc')
+                ->orderBy('start_time', 'desc')
                         ->get();
 
                     $eventsByType[$type] = $events;
@@ -93,7 +93,7 @@ class AttendanceController extends Controller
                 $stats['total_members'] = 0;
             }
 
-            return view('attendances.index', compact('eventsByType', 'stats'));
+        return view('attendances.index', compact('eventsByType', 'stats'));
 
         } catch (\Exception $e) {
             \Log::error('Error in AttendanceController@index: ' . $e->getMessage());

@@ -93,6 +93,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/bank-accounts', [ReportController::class, 'bankAccounts'])->name('bank-accounts');
         Route::get('/category-summary', [ReportController::class, 'categorySummary'])->name('category-summary');
         
+        // Individual financial reports
+        Route::get('/players/{player}/finances', [ReportController::class, 'playerFinances'])->name('player.finances');
+        Route::get('/members/{member}/finances', [ReportController::class, 'memberFinances'])->name('member.finances');
+        Route::get('/staff/{staff}/finances', [ReportController::class, 'staffFinances'])->name('staff.finances');
+        
         // Export routes
         Route::post('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
         Route::post('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');

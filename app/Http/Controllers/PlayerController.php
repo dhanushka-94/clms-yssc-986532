@@ -216,12 +216,15 @@ class PlayerController extends Controller
 
         // Calculate totals using query builder for better performance
         $totals = DB::table('financial_transactions')
-            ->where('transactionable_type', 'App\\Models\\Player')
+            ->where(function($query) {
+                $query->where('transactionable_type', 'player')
+                      ->orWhere('transactionable_type', Player::class);
+            })
             ->where('transactionable_id', $player->id)
             ->where('status', 'completed')
             ->selectRaw('
-                SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as total_income,
-                SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) as total_expenses
+                COALESCE(SUM(CASE WHEN type = "income" THEN amount ELSE 0 END), 0) as total_income,
+                COALESCE(SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END), 0) as total_expenses
             ')
             ->first();
 

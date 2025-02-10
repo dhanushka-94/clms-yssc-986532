@@ -144,7 +144,28 @@ class MemberController extends Controller
 
     public function show(Member $member): View
     {
-        return view('members.show', compact('member'));
+        // Load the member's financial transactions
+        $member->load(['user', 'financialTransactions' => function ($query) {
+            $query->where('status', 'completed')
+                  ->orderBy('transaction_date', 'desc')
+                  ->orderBy('created_at', 'desc');
+        }]);
+
+        // Calculate totals using query builder for better performance
+        $totals = DB::table('financial_transactions')
+            ->where('transactionable_type', 'App\\Models\\Member')
+            ->where('transactionable_id', $member->id)
+            ->where('status', 'completed')
+            ->selectRaw('
+                SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) as total_expenses
+            ')
+            ->first();
+
+        $totalIncome = $totals->total_income ?? 0;
+        $totalExpenses = $totals->total_expenses ?? 0;
+
+        return view('members.show', compact('member', 'totalIncome', 'totalExpenses'));
     }
 
     public function edit(Member $member): View

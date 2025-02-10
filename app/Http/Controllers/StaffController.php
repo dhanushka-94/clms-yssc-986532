@@ -153,7 +153,28 @@ class StaffController extends Controller
 
     public function show(Staff $staff): View
     {
-        return view('staff.show', compact('staff'));
+        // Load the staff's financial transactions
+        $staff->load(['user', 'financialTransactions' => function ($query) {
+            $query->where('status', 'completed')
+                  ->orderBy('transaction_date', 'desc')
+                  ->orderBy('created_at', 'desc');
+        }]);
+
+        // Calculate totals using query builder for better performance
+        $totals = DB::table('financial_transactions')
+            ->where('transactionable_type', 'App\\Models\\Staff')
+            ->where('transactionable_id', $staff->id)
+            ->where('status', 'completed')
+            ->selectRaw('
+                SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) as total_expenses
+            ')
+            ->first();
+
+        $totalIncome = $totals->total_income ?? 0;
+        $totalExpenses = $totals->total_expenses ?? 0;
+
+        return view('staff.show', compact('staff', 'totalIncome', 'totalExpenses'));
     }
 
     public function edit(Staff $staff): View

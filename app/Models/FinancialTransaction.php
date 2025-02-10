@@ -20,27 +20,22 @@ class FinancialTransaction extends Model
 
     protected $fillable = [
         'transaction_number',
+        'transaction_date',
         'type',
-        'category',
         'amount',
         'description',
-        'transaction_date',
+        'category',
         'payment_method',
-        'reference_number',
+        'bank_account_id',
         'status',
         'remarks',
-        'bank_account_id',
-        'transactionable_type',
-        'transactionable_id',
         'attachments',
-        'signature',
-        'signatory_name',
-        'signatory_designation',
+        'transactionable_type',
+        'transactionable_id'
     ];
 
     protected $casts = [
-        'transaction_date' => 'date',
-        'date' => 'date',
+        'transaction_date' => 'datetime',
         'amount' => 'decimal:2',
         'attachments' => 'array'
     ];
@@ -64,7 +59,7 @@ class FinancialTransaction extends Model
         return $this->belongsTo(BankAccount::class);
     }
 
-    public function transactionable()
+    public function transactionable(): MorphTo
     {
         return $this->morphTo();
     }
@@ -87,5 +82,28 @@ class FinancialTransaction extends Model
     public function getRouteKeyName()
     {
         return 'transaction_number';
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($transaction) {
+            if (!$transaction->transaction_number) {
+                $prefix = $transaction->type === 'income' ? 'INC' : 'EXP';
+                $latestTransaction = static::where('type', $transaction->type)
+                    ->latest()
+                    ->first();
+
+                if (!$latestTransaction) {
+                    $transaction->transaction_number = $prefix . '0001';
+                } else {
+                    $lastNumber = intval(substr($latestTransaction->transaction_number, 3));
+                    $transaction->transaction_number = $prefix . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+                }
+            }
+
+            $transaction->status = $transaction->status ?? 'pending';
+        });
     }
 }

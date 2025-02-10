@@ -164,6 +164,46 @@
                             @endif
                         </div>
                     </div>
+
+                    <div class="mt-4 flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-900">Financial Information</h3>
+                        <a href="{{ route('reports.staff.finances', $staff) }}" 
+                           class="inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-md">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            View Financial Report
+                        </a>
+                    </div>
+                    <!-- Financial Summary -->
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-sm font-medium text-green-900">Total Income</h4>
+                                    <p class="mt-1 text-2xl font-semibold text-green-600">LKR {{ number_format($totalIncome ?? 0, 2) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-red-100 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-sm font-medium text-red-900">Total Expenses</h4>
+                                    <p class="mt-1 text-2xl font-semibold text-red-600">LKR {{ number_format($totalExpenses ?? 0, 2) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

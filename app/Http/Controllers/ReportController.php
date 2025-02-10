@@ -12,6 +12,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Exports\TransactionsExport;
 use App\Models\Category;
+use App\Models\Player;
+use App\Models\Member;
+use App\Models\Staff;
 
 class ReportController extends Controller
 {
@@ -401,5 +404,143 @@ class ReportController extends Controller
         }
 
         return $query->latest('transaction_date');
+    }
+
+    private function getIndividualFinanceReport($model, $type, Request $request)
+    {
+        try {
+            \Log::info('Starting individual finance report', [
+                'model_type' => get_class($model),
+                'model_id' => $model->id,
+                'type' => $type
+            ]);
+
+            // Use the correct morphMap key instead of the full class name
+            $morphType = match (get_class($model)) {
+                Player::class => 'player',
+                Staff::class => 'staff',
+                Member::class => 'member',
+                default => strtolower(class_basename($model))
+            };
+
+            $query = FinancialTransaction::where('transactionable_type', $morphType)
+                ->where('transactionable_id', $model->id);
+
+            \Log::info('Initial query built', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings(),
+                'morph_type' => $morphType
+            ]);
+
+            // Apply date filters
+            if ($request->filled('date_from')) {
+                $query->where('transaction_date', '>=', $request->date_from);
+            }
+            if ($request->filled('date_to')) {
+                $query->where('transaction_date', '<=', $request->date_to);
+            }
+
+            // Get transactions with error handling
+            try {
+                $transactions = $query->latest('transaction_date')->paginate(15);
+                \Log::info('Transactions found', ['count' => $transactions->count()]);
+            } catch (\Exception $e) {
+                \Log::error('Error retrieving transactions: ' . $e->getMessage());
+                $transactions = collect([])->paginate(15);
+            }
+
+            // Calculate summary statistics with error handling
+            try {
+                $summary = $query->selectRaw('
+                    COALESCE(SUM(CASE WHEN type = "income" AND status = "completed" THEN amount ELSE 0 END), 0) as total_income,
+                    COALESCE(SUM(CASE WHEN type = "expense" AND status = "completed" THEN amount ELSE 0 END), 0) as total_expenses,
+                    COUNT(CASE WHEN type = "income" THEN 1 END) as income_count,
+                    COUNT(CASE WHEN type = "expense" THEN 1 END) as expense_count,
+                    COUNT(CASE WHEN status = "pending" THEN 1 END) as pending_count
+                ')->first();
+                \Log::info('Summary calculated', ['summary' => $summary]);
+            } catch (\Exception $e) {
+                \Log::error('Error calculating summary: ' . $e->getMessage());
+                $summary = (object)[
+                    'total_income' => 0,
+                    'total_expenses' => 0,
+                    'income_count' => 0,
+                    'expense_count' => 0,
+                    'pending_count' => 0
+                ];
+            }
+
+            // Get monthly trend data with error handling
+            try {
+                $monthlyTrend = $query->select(
+                    DB::raw('DATE_FORMAT(transaction_date, "%Y-%m") as month'),
+                    DB::raw('COALESCE(SUM(CASE WHEN type = "income" THEN amount ELSE 0 END), 0) as income'),
+                    DB::raw('COALESCE(SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END), 0) as expenses')
+                )
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
+                \Log::info('Monthly trend retrieved', ['count' => $monthlyTrend->count()]);
+            } catch (\Exception $e) {
+                \Log::error('Error retrieving monthly trend: ' . $e->getMessage());
+                $monthlyTrend = collect([]);
+            }
+
+            // Get category distribution with error handling
+            try {
+                $categoryDistribution = $query->where('status', 'completed')
+                    ->select('type', 'category', DB::raw('SUM(amount) as total'))
+                    ->groupBy('type', 'category')
+                    ->get();
+                \Log::info('Category distribution retrieved', ['count' => $categoryDistribution->count()]);
+            } catch (\Exception $e) {
+                \Log::error('Error retrieving category distribution: ' . $e->getMessage());
+                $categoryDistribution = collect([]);
+            }
+
+            return view('reports.individual-finances', compact(
+                'model',
+                'type',
+                'transactions',
+                'summary',
+                'monthlyTrend',
+                'categoryDistribution'
+            ));
+
+        } catch (\Exception $e) {
+            \Log::error('Error in getIndividualFinanceReport: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            
+            // Return a view with empty data
+            return view('reports.individual-finances', [
+                'model' => $model,
+                'type' => $type,
+                'transactions' => collect([])->paginate(15),
+                'summary' => (object)[
+                    'total_income' => 0,
+                    'total_expenses' => 0,
+                    'income_count' => 0,
+                    'expense_count' => 0,
+                    'pending_count' => 0
+                ],
+                'monthlyTrend' => collect([]),
+                'categoryDistribution' => collect([])
+            ])->withErrors(['error' => 'An error occurred while generating the report. Please try again.']);
+        }
+    }
+
+    public function playerFinances(Request $request, Player $player)
+    {
+        return $this->getIndividualFinanceReport($player, 'player', $request);
+    }
+
+    public function memberFinances(Request $request, Member $member)
+    {
+        return $this->getIndividualFinanceReport($member, 'member', $request);
+    }
+
+    public function staffFinances(Request $request, Staff $staff)
+    {
+        return $this->getIndividualFinanceReport($staff, 'staff', $request);
     }
 } 
