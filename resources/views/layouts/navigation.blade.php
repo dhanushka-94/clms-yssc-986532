@@ -109,7 +109,7 @@
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                             <div class="flex items-center">
                                 @if(Auth::user()->profile_picture)
-                                    <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile Picture" class="h-8 w-8 rounded-full object-cover mr-2">
+                                    <img src="{{ Auth::user()->profile_picture_url }}" alt="Profile Picture" class="h-8 w-8 rounded-full object-cover mr-2">
                                 @else
                                     <div class="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center mr-2">
                                         <span class="text-yellow-800 font-medium text-sm">
@@ -244,7 +244,7 @@
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4 flex items-center">
                 @if(Auth::user()->profile_picture)
-                    <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile Picture" class="h-10 w-10 rounded-full object-cover mr-3">
+                    <img src="{{ Auth::user()->profile_picture_url }}" alt="Profile Picture" class="h-10 w-10 rounded-full object-cover mr-3">
                 @else
                     <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
                         <span class="text-yellow-800 font-medium text-sm">

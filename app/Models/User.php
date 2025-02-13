@@ -81,4 +81,12 @@ class User extends Authenticatable
     {
         $this->update(['role' => $role]);
     }
+
+    public function getProfilePictureUrlAttribute()
+    {
+        if ($this->profile_picture) {
+            return asset('storage/' . $this->profile_picture);
+        }
+        return null;
+    }
 }

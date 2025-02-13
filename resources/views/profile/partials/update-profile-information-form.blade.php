@@ -23,7 +23,7 @@
             <div class="mt-2 flex items-center">
                 @if($user->profile_picture)
                     <div class="relative">
-                        <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="Profile Picture" class="h-20 w-20 rounded-full object-cover">
+                        <img src="{{ $user->profile_picture_url }}" alt="Profile Picture" class="h-20 w-20 rounded-full object-cover">
                         <button type="button" onclick="document.getElementById('remove_picture').value = '1'; this.closest('form').submit();" 
                                 class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
