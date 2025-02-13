@@ -7,20 +7,6 @@
                 </svg>
                 {{ __('Financial Reports') }}
             </h2>
-            <div class="flex space-x-4">
-                <button onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded inline-flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                    </svg>
-                    Print Report
-                </button>
-                <button onclick="exportToPDF()" class="bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 px-4 rounded inline-flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Export PDF
-                </button>
-            </div>
         </div>
     </x-slot>
 
@@ -146,19 +132,6 @@
                                 <h4 class="ml-4 text-lg font-semibold text-gray-900 group-hover:text-purple-700">Category Analysis</h4>
                             </div>
                             <p class="text-sm text-gray-600">View transaction distribution across different categories.</p>
-                        </a>
-
-                        <!-- Entity Report -->
-                        <a href="{{ route('reports.entities') }}" class="group block p-6 bg-white border border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-colors duration-300">
-                            <div class="flex items-center mb-4">
-                                <div class="flex-shrink-0 bg-indigo-100 rounded-full p-3 group-hover:bg-indigo-200 transition-colors duration-300">
-                                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                    </svg>
-                                </div>
-                                <h4 class="ml-4 text-lg font-semibold text-gray-900 group-hover:text-indigo-700">Entity Report</h4>
-                            </div>
-                            <p class="text-sm text-gray-600">Analyze transactions by players, staff, members, and sponsors.</p>
                         </a>
 
                         <!-- Bank Account Report -->
