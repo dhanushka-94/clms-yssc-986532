@@ -83,7 +83,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('signatures', SignatureController::class);
     });
 
-    // Financial Reports Routes
+    // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/transactions', [ReportController::class, 'transactions'])->name('transactions');
@@ -91,7 +91,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/expenses', [ReportController::class, 'expenses'])->name('expenses');
         Route::get('/entities', [ReportController::class, 'entities'])->name('entities');
         Route::get('/bank-accounts', [ReportController::class, 'bankAccounts'])->name('bank-accounts');
-        Route::get('/category-summary', [ReportController::class, 'categorySummary'])->name('category-summary');
+        Route::get('/category-summary', [ReportController::class, 'categorySummary'])->name('category.summary');
         
         // Individual financial reports
         Route::get('/players/{player}/finances', [ReportController::class, 'playerFinances'])->name('player.finances');
@@ -103,14 +103,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
         Route::post('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
         Route::post('/export/csv', [ReportController::class, 'exportCsv'])->name('export.csv');
-
-        Route::get('player/{player}/finances', [ReportController::class, 'playerFinances'])->name('player.finances');
-        Route::get('member/{member}/finances', [ReportController::class, 'memberFinances'])->name('member.finances');
-        Route::get('staff/{staff}/finances', [ReportController::class, 'staffFinances'])->name('staff.finances');
-        Route::get('category-summary', [ReportController::class, 'categorySummary'])->name('category.summary');
-        Route::post('export-pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
-        Route::post('export-excel', [ReportController::class, 'exportExcel'])->name('export.excel');
-        Route::post('export-csv', [ReportController::class, 'exportCsv'])->name('export.csv');
     });
 
     Route::patch('/financial-transactions/{transaction}/signature', [FinancialTransactionController::class, 'updateSignature'])
