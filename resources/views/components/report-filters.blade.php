@@ -114,32 +114,6 @@
                     </a>
                 @endif
             </div>
-
-            <div class="flex items-center space-x-4">
-                <form action="{{ route('reports.export.pdf') }}" method="POST" class="inline">
-                    @csrf
-                    <input type="hidden" name="filters" value="{{ json_encode(request()->all()) }}">
-                    <x-secondary-button type="submit">
-                        {{ __('Export PDF') }}
-                    </x-secondary-button>
-                </form>
-
-                <form action="{{ route('reports.export.excel') }}" method="POST" class="inline">
-                    @csrf
-                    <input type="hidden" name="filters" value="{{ json_encode(request()->all()) }}">
-                    <x-secondary-button type="submit">
-                        {{ __('Export Excel') }}
-                    </x-secondary-button>
-                </form>
-
-                <form action="{{ route('reports.export.csv') }}" method="POST" class="inline">
-                    @csrf
-                    <input type="hidden" name="filters" value="{{ json_encode(request()->all()) }}">
-                    <x-secondary-button type="submit">
-                        {{ __('Export CSV') }}
-                    </x-secondary-button>
-                </form>
-            </div>
         </div>
     </form>
 </div> 

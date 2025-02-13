@@ -6,6 +6,7 @@ use App\Models\Sponsor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class SponsorController extends Controller
 {
@@ -66,7 +67,28 @@ class SponsorController extends Controller
 
     public function show(Sponsor $sponsor): View
     {
-        return view('sponsors.show', compact('sponsor'));
+        // Load the sponsor's financial transactions
+        $sponsor->load(['financialTransactions' => function ($query) {
+            $query->where('status', 'completed')
+                  ->orderBy('transaction_date', 'desc')
+                  ->orderBy('created_at', 'desc');
+        }]);
+
+        // Calculate totals using query builder for better performance
+        $totals = DB::table('financial_transactions')
+            ->where('transactionable_type', 'App\\Models\\Sponsor')
+            ->where('transactionable_id', $sponsor->id)
+            ->where('status', 'completed')
+            ->selectRaw('
+                SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) as total_expenses
+            ')
+            ->first();
+
+        $totalIncome = $totals->total_income ?? 0;
+        $totalExpenses = $totals->total_expenses ?? 0;
+
+        return view('sponsors.show', compact('sponsor', 'totalIncome', 'totalExpenses'));
     }
 
     public function edit(Sponsor $sponsor): View

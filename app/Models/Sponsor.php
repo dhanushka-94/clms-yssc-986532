@@ -52,6 +52,15 @@ class Sponsor extends Model
 
     public function financialTransactions(): MorphMany
     {
-        return $this->morphMany(FinancialTransaction::class, 'transactionable');
+        return $this->morphMany(FinancialTransaction::class, 'transactionable')
+            ->where(function($query) {
+                $query->where('transactionable_type', 'sponsor')
+                    ->orWhere('transactionable_type', self::class);
+            });
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return $this->name;
     }
 }

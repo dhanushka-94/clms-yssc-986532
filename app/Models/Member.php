@@ -68,9 +68,13 @@ class Member extends Model
         return $this->belongsTo(User::class)->withDefault();
     }
 
-    public function financialTransactions()
+    public function financialTransactions(): MorphMany
     {
-        return $this->morphMany(FinancialTransaction::class, 'transactionable');
+        return $this->morphMany(FinancialTransaction::class, 'transactionable')
+            ->where(function($query) {
+                $query->where('transactionable_type', 'member')
+                    ->orWhere('transactionable_type', self::class);
+            });
     }
 
     public function attendances(): MorphMany
@@ -83,5 +87,10 @@ class Member extends Model
         return $this->morphToMany(Event::class, 'attendee', 'attendances')
             ->withPivot('status', 'check_in_time', 'check_out_time', 'remarks')
             ->withTimestamps();
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
     }
 }

@@ -4,6 +4,24 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Expense Report') }}
             </h2>
+            <div class="flex space-x-4">
+                <form action="{{ route('reports.export.pdf') }}" method="POST" class="inline">
+                    @csrf
+                    <input type="hidden" name="report_type" value="expenses">
+                    <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                    <input type="hidden" name="date_to" value="{{ request('date_to') }}">
+                    <input type="hidden" name="category" value="{{ request('category') }}">
+                    <input type="hidden" name="payment_method" value="{{ request('payment_method') }}">
+                    <input type="hidden" name="status" value="{{ request('status') }}">
+                    <input type="hidden" name="bank_account_id" value="{{ request('bank_account_id') }}">
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Export PDF
+                    </button>
+                </form>
+            </div>
         </div>
     </x-slot>
 
@@ -142,105 +160,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Expense Trend Chart -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-6">
-                <div class="p-6 bg-white border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Expense Trends</h3>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Monthly Trend -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-900 mb-2">Monthly Expense Trend</h4>
-                            <div class="h-80">
-                                <canvas id="expenseTrendChart"></canvas>
-                            </div>
-                        </div>
-                        <!-- Category Distribution -->
-                        <div>
-                            <h4 class="text-md font-medium text-gray-900 mb-2">Expenses by Category</h4>
-                            <div class="h-80">
-                                <canvas id="expenseCategoryChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
-</x-app-layout>
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Monthly Expense Trend Chart
-        const trendCtx = document.getElementById('expenseTrendChart').getContext('2d');
-        new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: @json($monthlyData->pluck('month')),
-                datasets: [{
-                    label: 'Monthly Expenses',
-                    data: @json($monthlyData->pluck('total')),
-                    borderColor: 'rgb(239, 68, 68)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    tension: 0.1,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Monthly Expense Trend'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'LKR ' + value.toLocaleString();
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Expense by Category Chart
-        const categoryCtx = document.getElementById('expenseCategoryChart').getContext('2d');
-        new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: @json($categoryData->pluck('category')),
-                datasets: [{
-                    data: @json($categoryData->pluck('total')),
-                    backgroundColor: [
-                        'rgb(239, 68, 68)',
-                        'rgb(249, 115, 22)',
-                        'rgb(234, 179, 8)',
-                        'rgb(34, 197, 94)',
-                        'rgb(59, 130, 246)',
-                        'rgb(168, 85, 247)',
-                        'rgb(236, 72, 153)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Expense Distribution by Category'
-                    },
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
-    });
-</script>
-@endpush 
+</x-app-layout> 

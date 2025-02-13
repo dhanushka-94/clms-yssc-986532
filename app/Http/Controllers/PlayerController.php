@@ -218,7 +218,7 @@ class PlayerController extends Controller
         $totals = DB::table('financial_transactions')
             ->where(function($query) {
                 $query->where('transactionable_type', 'player')
-                      ->orWhere('transactionable_type', Player::class);
+                      ->orWhere('transactionable_type', 'App\\Models\\Player');
             })
             ->where('transactionable_id', $player->id)
             ->where('status', 'completed')

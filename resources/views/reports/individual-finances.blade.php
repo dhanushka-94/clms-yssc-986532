@@ -10,6 +10,12 @@
                     <input type="hidden" name="report_type" value="individual">
                     <input type="hidden" name="model_type" value="{{ $type }}">
                     <input type="hidden" name="model_id" value="{{ $model->id }}">
+                    <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                    <input type="hidden" name="date_to" value="{{ request('date_to') }}">
+                    <input type="hidden" name="total_income" value="{{ $summary->total_income }}">
+                    <input type="hidden" name="total_expenses" value="{{ $summary->total_expenses }}">
+                    <input type="hidden" name="income_count" value="{{ $summary->income_count }}">
+                    <input type="hidden" name="expense_count" value="{{ $summary->expense_count }}">
                     <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -43,7 +49,7 @@
             </div>
 
             <!-- Summary Statistics -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Total Income -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
@@ -78,28 +84,6 @@
                                     <dt class="text-sm font-medium text-gray-500 truncate">Total Expenses</dt>
                                     <dd class="text-lg font-semibold text-gray-900">LKR {{ number_format($summary->total_expenses, 2) }}</dd>
                                     <dt class="text-xs text-gray-500 mt-1">{{ $summary->expense_count }} transactions</dt>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Net Balance -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                                <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
-                                </svg>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Net Balance</dt>
-                                    <dd class="text-lg font-semibold {{ ($summary->total_income - $summary->total_expenses) >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                                        LKR {{ number_format($summary->total_income - $summary->total_expenses, 2) }}
-                                    </dd>
-                                    <dt class="text-xs text-gray-500 mt-1">{{ $summary->pending_count }} pending transactions</dt>
                                 </dl>
                             </div>
                         </div>
