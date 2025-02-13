@@ -83,16 +83,15 @@ Route::middleware('auth')->group(function () {
         Route::resource('signatures', SignatureController::class);
     });
 
-    // Reports
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    
+    // Financial Reports Routes
     Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/transactions', [ReportController::class, 'transactions'])->name('transactions');
         Route::get('/income', [ReportController::class, 'income'])->name('income');
         Route::get('/expenses', [ReportController::class, 'expenses'])->name('expenses');
         Route::get('/entities', [ReportController::class, 'entities'])->name('entities');
         Route::get('/bank-accounts', [ReportController::class, 'bankAccounts'])->name('bank-accounts');
-        Route::get('/category-summary', [ReportController::class, 'categorySummary'])->name('category.summary');
+        Route::get('/category-summary', [ReportController::class, 'categorySummary'])->name('category-summary');
         
         // Individual financial reports
         Route::get('/players/{player}/finances', [ReportController::class, 'playerFinances'])->name('player.finances');

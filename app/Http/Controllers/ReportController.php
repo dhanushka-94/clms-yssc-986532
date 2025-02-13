@@ -728,6 +728,54 @@ class ReportController extends Controller
 
                 $pdf = PDF::loadView('reports.exports.expenses-pdf', $data);
                 return $pdf->download('expense_report_' . now()->format('Y-m-d') . '.pdf');
+            } elseif ($request->report_type === 'category-summary') {
+                // Get income categories
+                $incomeCategories = FinancialTransaction::where('type', 'income')
+                    ->where('status', 'completed')
+                    ->when($request->filled('date_from'), function($query) use ($request) {
+                        $query->whereDate('transaction_date', '>=', $request->date_from);
+                    })
+                    ->when($request->filled('date_to'), function($query) use ($request) {
+                        $query->whereDate('transaction_date', '<=', $request->date_to);
+                    })
+                    ->select('category', 
+                        DB::raw('COUNT(*) as transaction_count'),
+                        DB::raw('SUM(amount) as total_amount'))
+                    ->groupBy('category')
+                    ->orderByDesc('total_amount')
+                    ->get();
+
+                // Get expense categories
+                $expenseCategories = FinancialTransaction::where('type', 'expense')
+                    ->where('status', 'completed')
+                    ->when($request->filled('date_from'), function($query) use ($request) {
+                        $query->whereDate('transaction_date', '>=', $request->date_from);
+                    })
+                    ->when($request->filled('date_to'), function($query) use ($request) {
+                        $query->whereDate('transaction_date', '<=', $request->date_to);
+                    })
+                    ->select('category', 
+                        DB::raw('COUNT(*) as transaction_count'),
+                        DB::raw('SUM(amount) as total_amount'))
+                    ->groupBy('category')
+                    ->orderByDesc('total_amount')
+                    ->get();
+
+                // Calculate totals
+                $totalIncome = $incomeCategories->sum('total_amount');
+                $totalExpenses = $expenseCategories->sum('total_amount');
+
+                $data = [
+                    'incomeCategories' => $incomeCategories,
+                    'expenseCategories' => $expenseCategories,
+                    'totalIncome' => $totalIncome,
+                    'totalExpenses' => $totalExpenses,
+                    'dateFrom' => $request->date_from,
+                    'dateTo' => $request->date_to
+                ];
+
+                $pdf = PDF::loadView('reports.exports.category-summary-pdf', $data);
+                return $pdf->download('category_summary_report_' . now()->format('Y-m-d') . '.pdf');
             }
             
         } catch (\Exception $e) {

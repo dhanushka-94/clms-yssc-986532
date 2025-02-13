@@ -122,7 +122,7 @@
                         </a>
 
                         <!-- Category Analysis -->
-                        <a href="/reports/category-summary" class="group block p-6 bg-white border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-colors duration-300">
+                        <a href="{{ route('reports.category-summary') }}" class="group block p-6 bg-white border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-colors duration-300">
                             <div class="flex items-center mb-4">
                                 <div class="flex-shrink-0 bg-purple-100 rounded-full p-3 group-hover:bg-purple-200 transition-colors duration-300">
                                     <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
