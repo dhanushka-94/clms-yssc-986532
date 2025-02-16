@@ -267,6 +267,9 @@ class FinancialTransactionController extends Controller
         try {
             DB::beginTransaction();
 
+            // Get club settings for default signature
+            $clubSettings = \App\Models\ClubSettings::first();
+
             // Handle signature upload
             if ($request->hasFile('signature')) {
                 // Delete old signature if exists
