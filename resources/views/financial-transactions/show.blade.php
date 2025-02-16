@@ -87,7 +87,7 @@
 
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Date</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $transaction->date->format('Y-m-d') }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $transaction->transaction_date->format('Y-m-d') }}</dd>
                                 </div>
 
                                 <div>
@@ -111,7 +111,11 @@
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Bank Account</dt>
                                     <dd class="mt-1 text-sm text-gray-900">
-                                        {{ $transaction->bankAccount->bank_name }} - {{ $transaction->bankAccount->account_number }}
+                                        @if($transaction->bankAccount)
+                                            {{ $transaction->bankAccount->bank_name }} - {{ $transaction->bankAccount->account_number }}
+                                        @else
+                                            N/A
+                                        @endif
                                     </dd>
                                 </div>
 
@@ -140,7 +144,7 @@
                             </dl>
                         </div>
 
-                        @if($transaction->attachments && count($transaction->attachments) > 0)
+                        @if($transaction->attachments && is_array($transaction->attachments) && count($transaction->attachments) > 0)
                             <div class="bg-purple-50 p-6 rounded-lg">
                                 <h3 class="text-lg font-semibold text-purple-800 mb-4">Attachments</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -462,33 +462,46 @@ class ReportController extends Controller
         try {
             if ($request->report_type === 'transactions') {
                 // Get filtered transactions
-        $query = FinancialTransaction::with(['bankAccount', 'transactionable']);
-        
-        // Apply filters
-        if ($request->filled('date_from')) {
-            $query->where('transaction_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->where('transaction_date', '<=', $request->date_to);
-        }
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
-        if ($request->filled('payment_method')) {
-            $query->where('payment_method', $request->payment_method);
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->filled('bank_account_id')) {
-            $query->where('bank_account_id', $request->bank_account_id);
-        }
+                $query = FinancialTransaction::with(['bankAccount', 'transactionable']);
+                
+                // Apply filters
+                if ($request->filled('date_from')) {
+                    $query->where('transaction_date', '>=', $request->date_from);
+                }
+                if ($request->filled('date_to')) {
+                    $query->where('transaction_date', '<=', $request->date_to);
+                }
+                if ($request->filled('type')) {
+                    $query->where('type', $request->type);
+                }
+                if ($request->filled('category')) {
+                    $query->where('category', $request->category);
+                }
+                if ($request->filled('payment_method')) {
+                    $query->where('payment_method', $request->payment_method);
+                }
+                if ($request->filled('status')) {
+                    $query->where('status', $request->status);
+                }
+                if ($request->filled('bank_account_id')) {
+                    $query->where('bank_account_id', $request->bank_account_id);
+                }
 
                 // Get transactions and summary data
-                $transactions = $query->latest('transaction_date')->get();
+                $transactions = $query->latest('transaction_date')->get()->map(function ($transaction) {
+                    if ($transaction->transactionable) {
+                        $transaction->related_name = match ($transaction->transactionable_type) {
+                            'App\\Models\\Player', 'App\\Models\\Staff', 'App\\Models\\Member' => 
+                                $transaction->transactionable->first_name . ' ' . $transaction->transactionable->last_name,
+                            'App\\Models\\Sponsor' => $transaction->transactionable->name,
+                            default => 'N/A'
+                        };
+                    } else {
+                        $transaction->related_name = 'N/A';
+                    }
+                    return $transaction;
+                });
+
                 $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
                 $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
                 $pendingTransactions = (clone $query)->where('status', 'pending')->count();

@@ -141,7 +141,6 @@
                 <th>Transaction #</th>
                 <th>Type</th>
                 <th>Category</th>
-                <th>Description</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Payment Method</th>
@@ -154,18 +153,15 @@
                 <tr>
                     <td>{{ $transaction->transaction_date->format('Y-m-d') }}</td>
                     <td>{{ $transaction->transaction_number }}</td>
-                    <td>{{ ucfirst($transaction->type) }}</td>
+                    <td class="{{ $transaction->type }}">{{ ucfirst($transaction->type) }}</td>
                     <td>{{ $transaction->category }}</td>
-                    <td>{{ $transaction->description }}</td>
-                    <td class="{{ $transaction->type }} amount-column">
+                    <td class="{{ $transaction->type }}">
                         LKR {{ number_format($transaction->amount, 2) }}
                     </td>
-                    <td class="status-{{ $transaction->status }}">
-                        {{ ucfirst($transaction->status) }}
-                    </td>
+                    <td class="{{ $transaction->status }}">{{ ucfirst($transaction->status) }}</td>
                     <td>{{ ucfirst(str_replace('_', ' ', $transaction->payment_method)) }}</td>
                     <td>{{ $transaction->bankAccount->bank_name }} - {{ $transaction->bankAccount->account_number }}</td>
-                    <td>{{ $transaction->transactionable_type ? class_basename($transaction->transactionable_type) . ': ' . $transaction->transactionable_name : 'N/A' }}</td>
+                    <td>{{ $transaction->related_name }}</td>
                 </tr>
             @empty
                 <tr>
