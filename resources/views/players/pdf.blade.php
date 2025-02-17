@@ -178,7 +178,12 @@
     </div>
 
     <div class="footer">
-        <img src="{{ public_path('images/logo.png') }}" alt="Logo" class="logo">
+        @php
+            $clubSettings = \App\Models\ClubSettings::first();
+        @endphp
+        @if($clubSettings && $clubSettings->logo_path)
+            <img src="{{ public_path('images/' . $clubSettings->logo_path) }}" alt="Club Logo" style="height: 20px; width: auto; display: inline-block; vertical-align: middle; margin-right: 5px;">
+        @endif
         © {{ date('Y') }} Young Silver Sports Club
     </div>
 </body>
