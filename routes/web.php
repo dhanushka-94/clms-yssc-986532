@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('members', MemberController::class);
     Route::resource('staff', StaffController::class);
     Route::resource('players', PlayerController::class);
+    Route::get('players/{player}/download-pdf', [PlayerController::class, 'downloadPdf'])->name('players.download-pdf');
     Route::resource('sponsors', SponsorController::class);
     Route::resource('bank-accounts', BankAccountController::class);
     Route::resource('financial-transactions', FinancialTransactionController::class)->parameters([

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use PDF;
 
 class PlayerController extends Controller
 {
@@ -334,5 +335,40 @@ class PlayerController extends Controller
             \Log::error('Player deletion failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to delete player. ' . $e->getMessage());
         }
+    }
+
+    public function sponsorFinances(Request $request, Sponsor $sponsor)
+    {
+        return $this->getIndividualFinanceReport($sponsor, 'sponsor', $request);
+    }
+
+    public function downloadPdf(Player $player)
+    {
+        // Load the player's financial transactions
+        $player->load(['user', 'financialTransactions' => function ($query) {
+            $query->where('status', 'completed')
+                  ->orderBy('transaction_date', 'desc')
+                  ->orderBy('created_at', 'desc');
+        }]);
+
+        // Calculate totals using query builder for better performance
+        $totals = DB::table('financial_transactions')
+            ->where(function($query) {
+                $query->where('transactionable_type', 'player')
+                      ->orWhere('transactionable_type', 'App\\Models\\Player');
+            })
+            ->where('transactionable_id', $player->id)
+            ->where('status', 'completed')
+            ->selectRaw('
+                COALESCE(SUM(CASE WHEN type = "income" THEN amount ELSE 0 END), 0) as total_income,
+                COALESCE(SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END), 0) as total_expenses
+            ')
+            ->first();
+
+        $totalIncome = $totals->total_income ?? 0;
+        $totalExpenses = $totals->total_expenses ?? 0;
+
+        $pdf = PDF::loadView('players.pdf', compact('player', 'totalIncome', 'totalExpenses'));
+        return $pdf->download('player_' . $player->player_id . '_details.pdf');
     }
 }
