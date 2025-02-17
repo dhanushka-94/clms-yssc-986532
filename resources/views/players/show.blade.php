@@ -8,9 +8,6 @@
                 {{ __('Player Details') }}
             </h2>
             <div>
-                <button onclick="window.print()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2">
-                    <i class="fas fa-print"></i> Print
-                </button>
                 <a href="{{ route('players.download-pdf', $player) }}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mr-2">
                     <i class="fas fa-file-pdf"></i> Download PDF
                 </a>
