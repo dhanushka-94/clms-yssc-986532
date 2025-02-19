@@ -156,7 +156,7 @@
             <!-- Club Logo -->
             @if($clubSettings && $clubSettings->logo_path)
             <div class="logo">
-                <img src="{{ storage_path('app/public/' . $clubSettings->logo_path) }}" alt="Club Logo">
+                <img src="{{ public_path('images/' . $clubSettings->logo_path) }}" alt="Club Logo">
             </div>
             @endif
 
