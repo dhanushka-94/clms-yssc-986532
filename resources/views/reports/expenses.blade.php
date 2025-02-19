@@ -94,6 +94,9 @@
                                         Amount
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Related To
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Status
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -101,9 +104,6 @@
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Bank Account
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Related To
                                     </th>
                                 </tr>
                             </thead>
@@ -119,12 +119,33 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ $transaction->category }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            <span class="text-red-600">
-                                                LKR {{ number_format($transaction->amount, 2) }}
-                                            </span>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
+                                            LKR {{ number_format($transaction->amount, 2) }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            @if($transaction->transactionable)
+                                                <div class="flex flex-col">
+                                                    <span class="font-medium text-gray-900">
+                                                        @switch($transaction->transactionable_type)
+                                                            @case('App\Models\Player')
+                                                            @case('App\Models\Staff')
+                                                            @case('App\Models\Member')
+                                                                {{ $transaction->transactionable->first_name }} {{ $transaction->transactionable->last_name }}
+                                                                @break
+                                                            @case('App\Models\Sponsor')
+                                                                {{ $transaction->transactionable->name }}
+                                                                @break
+                                                        @endswitch
+                                                    </span>
+                                                    <span class="text-xs text-gray-500">
+                                                        {{ class_basename($transaction->transactionable_type) }}
+                                                    </span>
+                                                </div>
+                                            @else
+                                                <span class="text-gray-400">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                                 @if($transaction->status === 'completed') bg-green-100 text-green-800
                                                 @elseif($transaction->status === 'pending') bg-yellow-100 text-yellow-800
@@ -138,9 +159,6 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ $transaction->bankAccount->bank_name }} - {{ $transaction->bankAccount->account_number }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $transaction->transactionable_type ? $transaction->transactionable_name : 'N/A' }}
                                         </td>
                                     </tr>
                                 @empty
