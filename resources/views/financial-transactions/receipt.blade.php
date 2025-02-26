@@ -293,6 +293,21 @@
                         \Log::error('Failed to load default signature: ' . $e->getMessage());
                     }
                 }
+                
+                // If still no signature, use a fallback signature from public/images
+                if (!$signatureData) {
+                    try {
+                        $fallbackPath = public_path('images/club-logo.png');
+                        if (file_exists($fallbackPath)) {
+                            $signatureData = base64_encode(file_get_contents($fallbackPath));
+                            $signatoryName = $clubSettings ? $clubSettings->default_signatory_name : 'Authorized Signatory';
+                            $signatoryDesignation = $clubSettings ? $clubSettings->default_signatory_designation : 'Young Silver Sports Club';
+                        }
+                    } catch (\Exception $e) {
+                        // Log error but continue
+                        \Log::error('Failed to load fallback signature: ' . $e->getMessage());
+                    }
+                }
             @endphp
             
             @if($signatureData)
