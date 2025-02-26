@@ -221,6 +221,19 @@
             border-top: 1px solid #e0e0e0;
             padding-top: 15px;
         }
+        .attachments {
+            margin-top: 15px;
+            font-size: 9px;
+            color: #4a4a4a;
+        }
+        .attachments ul {
+            list-style: none;
+            padding: 0;
+            margin: 3px 0;
+        }
+        .attachments li {
+            margin: 2px 0;
+        }
     </style>
 </head>
 <body>
@@ -347,6 +360,16 @@
             <div class="signature-line"></div>
             <div class="signature-info">
                 <div>Authorized Signature</div>
+                @if($transaction->signatory_name)
+                    <div style="font-weight: 600; margin: 3px 0;">{{ $transaction->signatory_name }}</div>
+                @elseif($clubSettings && $clubSettings->default_signatory_name)
+                    <div style="font-weight: 600; margin: 3px 0;">{{ $clubSettings->default_signatory_name }}</div>
+                @endif
+                @if($transaction->signatory_designation)
+                    <div>{{ $transaction->signatory_designation }}</div>
+                @elseif($clubSettings && $clubSettings->default_signatory_designation)
+                    <div>{{ $clubSettings->default_signatory_designation }}</div>
+                @endif
             </div>
         </div>
     </div>
