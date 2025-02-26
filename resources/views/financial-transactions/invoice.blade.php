@@ -371,16 +371,6 @@
             <div class="signature-line"></div>
             <div class="signature-info">
                 <div>Authorized Signature</div>
-                @if($transaction->signatory_name)
-                    <div style="font-weight: 600; margin: 3px 0;">{{ $transaction->signatory_name }}</div>
-                @elseif($clubSettings && $clubSettings->default_signatory_name)
-                    <div style="font-weight: 600; margin: 3px 0;">{{ $clubSettings->default_signatory_name }}</div>
-                @endif
-                @if($transaction->signatory_designation)
-                    <div>{{ $transaction->signatory_designation }}</div>
-                @elseif($clubSettings && $clubSettings->default_signatory_designation)
-                    <div>{{ $clubSettings->default_signatory_designation }}</div>
-                @endif
             </div>
         </div>
     </div>
