@@ -364,18 +364,6 @@
     </div>
     @endif
 
-    @if($transaction->signature || ($clubSettings && $clubSettings->default_signature))
-    <div class="signature-section">
-        <div class="signature-box">
-            <img src="{{ public_path('images/yssc-signature.png') }}" alt="Signature" class="signature-image">
-            <div class="signature-line"></div>
-            <div class="signature-info">
-                <div>Authorized Signature</div>
-            </div>
-        </div>
-    </div>
-    @endif
-
     <div class="footer">
         <p>{{ $clubSettings->name ?? config('app.name') }} - Building Champions of Tomorrow</p>
     </div>
