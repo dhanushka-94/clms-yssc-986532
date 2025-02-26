@@ -429,7 +429,27 @@ class FinancialTransactionController extends Controller
         $transaction->load(['bankAccount', 'transactionable']);
         $clubSettings = \App\Models\ClubSettings::first();
         
-        $pdf = PDF::loadView('financial-transactions.invoice', compact('transaction', 'clubSettings'));
+        // Prepare signature data
+        $signatoryName = null;
+        $signatoryDesignation = null;
+        
+        // First try to use transaction signature
+        if ($transaction->signature) {
+            $signatoryName = $transaction->signatory_name;
+            $signatoryDesignation = $transaction->signatory_designation;
+        } 
+        // If no transaction signature, use default from club settings
+        elseif ($clubSettings && $clubSettings->default_signature) {
+            $signatoryName = $clubSettings->default_signatory_name;
+            $signatoryDesignation = $clubSettings->default_signatory_designation;
+        }
+        
+        $pdf = PDF::loadView('financial-transactions.invoice', compact(
+            'transaction', 
+            'clubSettings',
+            'signatoryName',
+            'signatoryDesignation'
+        ));
         $pdf->setPaper('a4');
         
         return $pdf->download('invoice-' . $transaction->transaction_number . '.pdf');
