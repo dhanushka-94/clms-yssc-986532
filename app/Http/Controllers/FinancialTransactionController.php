@@ -22,6 +22,11 @@ class FinancialTransactionController extends Controller
     {
         $query = FinancialTransaction::with(['bankAccount', 'transactionable']);
 
+        // Search by Transaction ID
+        if (request()->filled('transaction_id')) {
+            $query->where('transaction_number', 'like', '%' . request('transaction_id') . '%');
+        }
+        
         // Apply filters
         if (request()->filled('type')) {
             $query->where('type', request('type'));
