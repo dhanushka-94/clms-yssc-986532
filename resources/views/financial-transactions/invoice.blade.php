@@ -366,43 +366,43 @@
 
     @if($transaction->signature || ($clubSettings && $clubSettings->default_signature) || isset($signatureData))
     <div class="signature-section">
-        <div class="signature-box">
-            @if(isset($signatureData))
-                <img src="data:image/png;base64,{{ $signatureData }}" alt="Signature" class="signature-image">
-            @else
-                @php
-                    $signaturePath = null;
-                    if ($transaction->signature && Storage::disk('public')->exists($transaction->signature)) {
-                        $signaturePath = storage_path('app/public/' . $transaction->signature);
-                    } elseif ($clubSettings && $clubSettings->default_signature && Storage::disk('public')->exists($clubSettings->default_signature)) {
-                        $signaturePath = storage_path('app/public/' . $clubSettings->default_signature);
-                    }
-                @endphp
-                
-                @if($signaturePath)
-                    <img src="{{ $signaturePath }}" alt="Signature" class="signature-image">
+            <div class="signature-box">
+                @if(isset($signatureData))
+                    <img src="data:image/png;base64,{{ $signatureData }}" alt="Signature" class="signature-image">
+                @else
+                    @php
+                        $signaturePath = null;
+                        if ($transaction->signature && Storage::disk('public')->exists($transaction->signature)) {
+                            $signaturePath = storage_path('app/public/' . $transaction->signature);
+                        } elseif ($clubSettings && $clubSettings->default_signature && Storage::disk('public')->exists($clubSettings->default_signature)) {
+                            $signaturePath = storage_path('app/public/' . $clubSettings->default_signature);
+                        }
+                    @endphp
+                    
+                    @if($signaturePath)
+                        <img src="{{ $signaturePath }}" alt="Signature" class="signature-image">
+                    @endif
                 @endif
-            @endif
-            <div class="signature-line"></div>
-            <div class="signature-info">
-                <div>Authorized Signature</div>
-                @if(isset($signatoryName))
-                    <div style="font-weight: 600; margin: 3px 0;">{{ $signatoryName }}</div>
-                @elseif($transaction->signatory_name)
-                    <div style="font-weight: 600; margin: 3px 0;">{{ $transaction->signatory_name }}</div>
-                @elseif($clubSettings && $clubSettings->default_signatory_name)
-                    <div style="font-weight: 600; margin: 3px 0;">{{ $clubSettings->default_signatory_name }}</div>
-                @endif
-                @if(isset($signatoryDesignation))
-                    <div>{{ $signatoryDesignation }}</div>
-                @elseif($transaction->signatory_designation)
-                    <div>{{ $transaction->signatory_designation }}</div>
-                @elseif($clubSettings && $clubSettings->default_signatory_designation)
-                    <div>{{ $clubSettings->default_signatory_designation }}</div>
-                @endif
+                <div class="signature-line"></div>
+                <div class="signature-info">
+                    <div>Authorized Signature</div>
+                    @if(isset($signatoryName))
+                        <div style="font-weight: 600; margin: 3px 0;">{{ $signatoryName }}</div>
+                    @elseif($transaction->signatory_name)
+                        <div style="font-weight: 600; margin: 3px 0;">{{ $transaction->signatory_name }}</div>
+                    @elseif($clubSettings && $clubSettings->default_signatory_name)
+                        <div style="font-weight: 600; margin: 3px 0;">{{ $clubSettings->default_signatory_name }}</div>
+                    @endif
+                    @if(isset($signatoryDesignation))
+                        <div>{{ $signatoryDesignation }}</div>
+                    @elseif($transaction->signatory_designation)
+                        <div>{{ $transaction->signatory_designation }}</div>
+                    @elseif($clubSettings && $clubSettings->default_signatory_designation)
+                        <div>{{ $clubSettings->default_signatory_designation }}</div>
+                    @endif
+                </div>
             </div>
         </div>
-    </div>
     @endif
 
     <div class="footer">
