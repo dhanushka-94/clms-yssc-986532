@@ -238,7 +238,7 @@
 
         @if($transaction->signature)
         <div class="signature-section">
-            <img src="{{ base_path('storage/app/public/' . $transaction->signature) }}" alt="Signature" class="signature-image">
+            <img src="{{ public_path('storage/' . $transaction->signature) }}" alt="Signature" class="signature-image">
             <div class="signature-info">
                 <div>Authorized Signature</div>
                 @if($transaction->signatory_name)
