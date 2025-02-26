@@ -221,19 +221,6 @@
             border-top: 1px solid #e0e0e0;
             padding-top: 15px;
         }
-        .attachments {
-            margin-top: 15px;
-            font-size: 9px;
-            color: #4a4a4a;
-        }
-        .attachments ul {
-            list-style: none;
-            padding: 0;
-            margin: 3px 0;
-        }
-        .attachments li {
-            margin: 2px 0;
-        }
     </style>
 </head>
 <body>
@@ -353,14 +340,15 @@
         </tbody>
     </table>
 
-    @if($transaction->attachments && count($transaction->attachments) > 0)
-    <div class="attachments">
-        <div class="section-title">Attachments</div>
-        <ul>
-            @foreach($transaction->attachments as $attachment)
-                <li>• {{ basename($attachment) }}</li>
-            @endforeach
-        </ul>
+    @if($transaction->signature || ($clubSettings && $clubSettings->default_signature))
+    <div class="signature-section">
+        <div class="signature-box">
+            <img src="{{ public_path('images/yssc-signature.png') }}" alt="Signature" class="signature-image">
+            <div class="signature-line"></div>
+            <div class="signature-info">
+                <div>Authorized Signature</div>
+            </div>
+        </div>
     </div>
     @endif
 
