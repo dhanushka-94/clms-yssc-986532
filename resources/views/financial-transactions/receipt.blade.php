@@ -263,7 +263,6 @@
                             public_path('storage/' . $transaction->signature),
                             storage_path('app/public/signatures/' . basename($transaction->signature)),
                             public_path('storage/signatures/' . basename($transaction->signature)),
-                            // Add the hosted server path
                             '/storage/signatures/' . basename($transaction->signature)
                         ];
                         
@@ -288,11 +287,10 @@
                         $paths = [
                             storage_path('app/public/' . $clubSettings->default_signature),
                             public_path('storage/' . $clubSettings->default_signature),
-                            storage_path('app/public/signatures/' . $clubSettings->default_signature),
+                            storage_path('app/public/signatures/' . basename($clubSettings->default_signature)),
                             public_path('images/' . $clubSettings->default_signature),
                             public_path('../storage/signatures/' . basename($clubSettings->default_signature)),
                             public_path('storage/signatures/' . basename($clubSettings->default_signature)),
-                            // Add the hosted server path
                             '/storage/signatures/' . basename($clubSettings->default_signature)
                         ];
                         
