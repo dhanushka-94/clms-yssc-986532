@@ -257,11 +257,23 @@
                 // First try to use transaction signature
                 if ($transaction->signature) {
                     try {
-                        $signaturePath = storage_path('app/public/' . $transaction->signature);
-                        if (file_exists($signaturePath)) {
-                            $signatureData = base64_encode(file_get_contents($signaturePath));
-                            $signatoryName = $transaction->signatory_name;
-                            $signatoryDesignation = $transaction->signatory_designation;
+                        // Try different paths for the transaction signature
+                        $paths = [
+                            storage_path('app/public/' . $transaction->signature),
+                            public_path('storage/' . $transaction->signature),
+                            storage_path('app/public/signatures/' . basename($transaction->signature)),
+                            public_path('storage/signatures/' . basename($transaction->signature)),
+                            // Add the hosted server path
+                            '/storage/signatures/' . basename($transaction->signature)
+                        ];
+                        
+                        foreach ($paths as $path) {
+                            if (file_exists($path)) {
+                                $signatureData = base64_encode(file_get_contents($path));
+                                $signatoryName = $transaction->signatory_name;
+                                $signatoryDesignation = $transaction->signatory_designation;
+                                break;
+                            }
                         }
                     } catch (\Exception $e) {
                         // Log error but continue
@@ -277,7 +289,11 @@
                             storage_path('app/public/' . $clubSettings->default_signature),
                             public_path('storage/' . $clubSettings->default_signature),
                             storage_path('app/public/signatures/' . $clubSettings->default_signature),
-                            public_path('images/' . $clubSettings->default_signature)
+                            public_path('images/' . $clubSettings->default_signature),
+                            public_path('../storage/signatures/' . basename($clubSettings->default_signature)),
+                            public_path('storage/signatures/' . basename($clubSettings->default_signature)),
+                            // Add the hosted server path
+                            '/storage/signatures/' . basename($clubSettings->default_signature)
                         ];
                         
                         foreach ($paths as $path) {
