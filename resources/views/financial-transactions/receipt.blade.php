@@ -250,7 +250,11 @@
         <!-- Signature Section - Show transaction signature or default system signature -->
         <div class="signature-section">
             <div style="text-align: right; margin-bottom: 10px;">
-                <div style="border-bottom: 1px solid #333; width: 200px; margin-left: auto; margin-bottom: 10px;">&nbsp;</div>
+                @if(isset($signatureData))
+                    <img src="data:image/png;base64,{{ $signatureData }}" alt="Signature" style="max-width: 200px; max-height: 60px; margin-bottom: 5px;">
+                @else
+                    <div style="border-bottom: 1px solid #333; width: 200px; margin-left: auto; margin-bottom: 10px;">&nbsp;</div>
+                @endif
                 <div style="font-weight: bold; color: #333;">Authorized Signature</div>
                 @if(isset($signatoryName))
                     <div style="font-weight: 500; margin-top: 3px;">{{ $signatoryName }}</div>

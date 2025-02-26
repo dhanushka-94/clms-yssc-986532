@@ -394,20 +394,25 @@ class FinancialTransactionController extends Controller
         $transaction->load(['bankAccount', 'transactionable']);
         $clubSettings = \App\Models\ClubSettings::first();
         
+        // Use the specific signature image
+        $signatureImagePath = public_path('images/yssc-signature.png');
+        $signatureData = null;
+        
+        if (file_exists($signatureImagePath)) {
+            $signatureData = base64_encode(file_get_contents($signatureImagePath));
+        }
+        
         // Prepare signature data
-        $signatureUrl = null;
         $signatoryName = null;
         $signatoryDesignation = null;
         
         // First try to use transaction signature
         if ($transaction->signature) {
-            $signatureUrl = $transaction->signature;
             $signatoryName = $transaction->signatory_name;
             $signatoryDesignation = $transaction->signatory_designation;
         } 
         // If no transaction signature, use default from club settings
         elseif ($clubSettings && $clubSettings->default_signature) {
-            $signatureUrl = $clubSettings->default_signature;
             $signatoryName = $clubSettings->default_signatory_name;
             $signatoryDesignation = $clubSettings->default_signatory_designation;
         }
@@ -415,7 +420,7 @@ class FinancialTransactionController extends Controller
         $pdf = PDF::loadView('financial-transactions.receipt', compact(
             'transaction', 
             'clubSettings',
-            'signatureUrl',
+            'signatureData',
             'signatoryName',
             'signatoryDesignation'
         ));
