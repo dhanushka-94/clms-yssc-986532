@@ -256,21 +256,41 @@
                 
                 // First try to use transaction signature
                 if ($transaction->signature) {
-                    $signaturePath = storage_path('app/public/' . $transaction->signature);
-                    if (file_exists($signaturePath)) {
-                        $signatureData = base64_encode(file_get_contents($signaturePath));
-                        $signatoryName = $transaction->signatory_name;
-                        $signatoryDesignation = $transaction->signatory_designation;
+                    try {
+                        $signaturePath = storage_path('app/public/' . $transaction->signature);
+                        if (file_exists($signaturePath)) {
+                            $signatureData = base64_encode(file_get_contents($signaturePath));
+                            $signatoryName = $transaction->signatory_name;
+                            $signatoryDesignation = $transaction->signatory_designation;
+                        }
+                    } catch (\Exception $e) {
+                        // Log error but continue
+                        \Log::error('Failed to load transaction signature: ' . $e->getMessage());
                     }
                 }
                 
                 // If no transaction signature, use system default
                 if (!$signatureData && $clubSettings && $clubSettings->default_signature) {
-                    $defaultSignaturePath = storage_path('app/public/' . $clubSettings->default_signature);
-                    if (file_exists($defaultSignaturePath)) {
-                        $signatureData = base64_encode(file_get_contents($defaultSignaturePath));
-                        $signatoryName = $clubSettings->default_signatory_name;
-                        $signatoryDesignation = $clubSettings->default_signatory_designation;
+                    try {
+                        // Try different paths for the default signature
+                        $paths = [
+                            storage_path('app/public/' . $clubSettings->default_signature),
+                            public_path('storage/' . $clubSettings->default_signature),
+                            storage_path('app/public/signatures/' . $clubSettings->default_signature),
+                            public_path('images/' . $clubSettings->default_signature)
+                        ];
+                        
+                        foreach ($paths as $path) {
+                            if (file_exists($path)) {
+                                $signatureData = base64_encode(file_get_contents($path));
+                                $signatoryName = $clubSettings->default_signatory_name;
+                                $signatoryDesignation = $clubSettings->default_signatory_designation;
+                                break;
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // Log error but continue
+                        \Log::error('Failed to load default signature: ' . $e->getMessage());
                     }
                 }
             @endphp
