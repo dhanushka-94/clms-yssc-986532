@@ -394,14 +394,6 @@ class FinancialTransactionController extends Controller
         $transaction->load(['bankAccount', 'transactionable']);
         $clubSettings = \App\Models\ClubSettings::first();
         
-        // Use the specific signature image
-        $signatureImagePath = public_path('images/yssc-signature.png');
-        $signatureData = null;
-        
-        if (file_exists($signatureImagePath)) {
-            $signatureData = base64_encode(file_get_contents($signatureImagePath));
-        }
-        
         // Prepare signature data
         $signatoryName = null;
         $signatoryDesignation = null;
@@ -420,7 +412,6 @@ class FinancialTransactionController extends Controller
         $pdf = PDF::loadView('financial-transactions.receipt', compact(
             'transaction', 
             'clubSettings',
-            'signatureData',
             'signatoryName',
             'signatoryDesignation'
         ));
@@ -438,36 +429,7 @@ class FinancialTransactionController extends Controller
         $transaction->load(['bankAccount', 'transactionable']);
         $clubSettings = \App\Models\ClubSettings::first();
         
-        // Use the specific signature image
-        $signatureImagePath = public_path('images/yssc-signature.png');
-        $signatureData = null;
-        
-        if (file_exists($signatureImagePath)) {
-            $signatureData = base64_encode(file_get_contents($signatureImagePath));
-        }
-        
-        // Prepare signature data
-        $signatoryName = null;
-        $signatoryDesignation = null;
-        
-        // First try to use transaction signature
-        if ($transaction->signature) {
-            $signatoryName = $transaction->signatory_name;
-            $signatoryDesignation = $transaction->signatory_designation;
-        } 
-        // If no transaction signature, use default from club settings
-        elseif ($clubSettings && $clubSettings->default_signature) {
-            $signatoryName = $clubSettings->default_signatory_name;
-            $signatoryDesignation = $clubSettings->default_signatory_designation;
-        }
-        
-        $pdf = PDF::loadView('financial-transactions.invoice', compact(
-            'transaction', 
-            'clubSettings',
-            'signatureData',
-            'signatoryName',
-            'signatoryDesignation'
-        ));
+        $pdf = PDF::loadView('financial-transactions.invoice', compact('transaction', 'clubSettings'));
         $pdf->setPaper('a4');
         
         return $pdf->download('invoice-' . $transaction->transaction_number . '.pdf');
