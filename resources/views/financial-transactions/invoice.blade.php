@@ -368,29 +368,91 @@
     <div class="signature-section">
         <div class="signature-box">
             @php
-                $signaturePath = null;
-                if ($transaction->signature && Storage::disk('public')->exists($transaction->signature)) {
-                    $signaturePath = storage_path('app/public/' . $transaction->signature);
-                } elseif ($clubSettings && $clubSettings->default_signature && Storage::disk('public')->exists($clubSettings->default_signature)) {
-                    $signaturePath = storage_path('app/public/' . $clubSettings->default_signature);
+                $signatureData = null;
+                $signatoryName = null;
+                $signatoryDesignation = null;
+                
+                // First try to use transaction signature
+                if ($transaction->signature) {
+                    try {
+                        // Try different paths for the transaction signature
+                        $paths = [
+                            storage_path('app/public/' . $transaction->signature),
+                            public_path('storage/' . $transaction->signature),
+                            storage_path('app/public/signatures/' . basename($transaction->signature)),
+                            public_path('storage/signatures/' . basename($transaction->signature)),
+                            '/storage/signatures/' . basename($transaction->signature)
+                        ];
+                        
+                        foreach ($paths as $path) {
+                            if (file_exists($path)) {
+                                $signatureData = base64_encode(file_get_contents($path));
+                                $signatoryName = $transaction->signatory_name;
+                                $signatoryDesignation = $transaction->signatory_designation;
+                                break;
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // Log error but continue
+                        \Log::error('Failed to load transaction signature: ' . $e->getMessage());
+                    }
+                }
+                
+                // If no transaction signature, use system default
+                if (!$signatureData && $clubSettings && $clubSettings->default_signature) {
+                    try {
+                        // Try different paths for the default signature
+                        $paths = [
+                            storage_path('app/public/' . $clubSettings->default_signature),
+                            public_path('storage/' . $clubSettings->default_signature),
+                            storage_path('app/public/signatures/' . $clubSettings->default_signature),
+                            public_path('images/' . $clubSettings->default_signature),
+                            public_path('../storage/signatures/' . basename($clubSettings->default_signature)),
+                            public_path('storage/signatures/' . basename($clubSettings->default_signature)),
+                            '/storage/signatures/' . basename($clubSettings->default_signature)
+                        ];
+                        
+                        foreach ($paths as $path) {
+                            if (file_exists($path)) {
+                                $signatureData = base64_encode(file_get_contents($path));
+                                $signatoryName = $clubSettings->default_signatory_name;
+                                $signatoryDesignation = $clubSettings->default_signatory_designation;
+                                break;
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // Log error but continue
+                        \Log::error('Failed to load default signature: ' . $e->getMessage());
+                    }
+                }
+                
+                // If still no signature, use a fallback signature from public/images
+                if (!$signatureData) {
+                    try {
+                        $fallbackPath = public_path('images/club-logo.png');
+                        if (file_exists($fallbackPath)) {
+                            $signatureData = base64_encode(file_get_contents($fallbackPath));
+                            $signatoryName = $clubSettings ? $clubSettings->default_signatory_name : 'Authorized Signatory';
+                            $signatoryDesignation = $clubSettings ? $clubSettings->default_signatory_designation : 'Young Silver Sports Club';
+                        }
+                    } catch (\Exception $e) {
+                        // Log error but continue
+                        \Log::error('Failed to load fallback signature: ' . $e->getMessage());
+                    }
                 }
             @endphp
             
-            @if($signaturePath)
-                <img src="{{ $signaturePath }}" alt="Signature" class="signature-image">
+            @if($signatureData)
+                <img src="data:image/png;base64,{{ $signatureData }}" alt="Signature" class="signature-image">
             @endif
             <div class="signature-line"></div>
             <div class="signature-info">
                 <div>Authorized Signature</div>
-                @if($transaction->signatory_name)
-                    <div style="font-weight: 600; margin: 3px 0;">{{ $transaction->signatory_name }}</div>
-                @elseif($clubSettings && $clubSettings->default_signatory_name)
-                    <div style="font-weight: 600; margin: 3px 0;">{{ $clubSettings->default_signatory_name }}</div>
+                @if($signatoryName)
+                    <div style="font-weight: 600; margin: 3px 0;">{{ $signatoryName }}</div>
                 @endif
-                @if($transaction->signatory_designation)
-                    <div>{{ $transaction->signatory_designation }}</div>
-                @elseif($clubSettings && $clubSettings->default_signatory_designation)
-                    <div>{{ $clubSettings->default_signatory_designation }}</div>
+                @if($signatoryDesignation)
+                    <div>{{ $signatoryDesignation }}</div>
                 @endif
             </div>
         </div>
