@@ -230,26 +230,65 @@
                 <span class="label">Related To:</span>
                 <span class="value">
                     {{ class_basename($transaction->transactionable_type) }} - 
-                    {{ $transaction->transactionable->name ?? $transaction->transactionable->company_name ?? 'N/A' }}
+                    @switch($transaction->transactionable_type)
+                        @case('App\Models\Player')
+                        @case('App\Models\Staff')
+                        @case('App\Models\Member')
+                            {{ $transaction->transactionable->first_name }} {{ $transaction->transactionable->last_name }}
+                            @break
+                        @case('App\Models\Sponsor')
+                            {{ $transaction->transactionable->name }}
+                            @break
+                        @default
+                            {{ $transaction->transactionable->name ?? $transaction->transactionable->company_name ?? 'N/A' }}
+                    @endswitch
                 </span>
             </div>
         </div>
         @endif
 
-        @if($transaction->signature)
+        <!-- Signature Section - Always show either transaction signature or default system signature -->
         <div class="signature-section">
-            <img src="{{ public_path('storage/' . $transaction->signature) }}" alt="Signature" class="signature-image">
+            @php
+                $signatureData = null;
+                $signatoryName = null;
+                $signatoryDesignation = null;
+                
+                // First try to use transaction signature
+                if ($transaction->signature) {
+                    $signaturePath = storage_path('app/public/' . $transaction->signature);
+                    if (file_exists($signaturePath)) {
+                        $signatureData = base64_encode(file_get_contents($signaturePath));
+                        $signatoryName = $transaction->signatory_name;
+                        $signatoryDesignation = $transaction->signatory_designation;
+                    }
+                }
+                
+                // If no transaction signature, use system default
+                if (!$signatureData && $clubSettings && $clubSettings->default_signature) {
+                    $defaultSignaturePath = storage_path('app/public/' . $clubSettings->default_signature);
+                    if (file_exists($defaultSignaturePath)) {
+                        $signatureData = base64_encode(file_get_contents($defaultSignaturePath));
+                        $signatoryName = $clubSettings->default_signatory_name;
+                        $signatoryDesignation = $clubSettings->default_signatory_designation;
+                    }
+                }
+            @endphp
+            
+            @if($signatureData)
+                <img src="data:image/png;base64,{{ $signatureData }}" alt="Signature" class="signature-image">
+            @endif
+            
             <div class="signature-info">
                 <div>Authorized Signature</div>
-                @if($transaction->signatory_name)
-                    <div style="font-weight: 500; margin-top: 3px;">{{ $transaction->signatory_name }}</div>
+                @if($signatoryName)
+                    <div style="font-weight: 500; margin-top: 3px;">{{ $signatoryName }}</div>
                 @endif
-                @if($transaction->signatory_designation)
-                    <div style="color: #666;">{{ $transaction->signatory_designation }}</div>
+                @if($signatoryDesignation)
+                    <div style="color: #666;">{{ $signatoryDesignation }}</div>
                 @endif
             </div>
         </div>
-        @endif
 
         <div class="footer">
             <p>This is a computer generated receipt.</p>
